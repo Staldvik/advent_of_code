@@ -2,8 +2,8 @@ import * as stdPath from "https://deno.land/std@0.102.0/path/mod.ts";
 const mainModulePath = stdPath.dirname(stdPath.fromFileUrl(Deno.mainModule));
 Deno.chdir(mainModulePath);
 
-const text = await Deno.readTextFile(new URL("./input.txt", import.meta.url));
 const ex = await Deno.readTextFile(new URL("./ex.txt", import.meta.url));
+const input = await Deno.readTextFile(new URL("./input.txt", import.meta.url));
 
 const parseInput = (input: string) => {
   const paths = input.split("\n");
@@ -18,34 +18,23 @@ const parseInput = (input: string) => {
     let fromX = points[0][0];
     let fromY = points[0][1];
     for (const [toX, toY] of points) {
-      if (fromX < toX) {
-        while (fromX < toX) {
-          map[fromY][fromX] = "#";
-          fromX++;
-        }
-      } else if (fromX > toX) {
-        while (fromX > toX) {
-          map[fromY][fromX] = "#";
-          fromX--;
-        }
+      let dx = toX - fromX;
+      while (Math.sign(dx) !== 0) {
+        map[fromY][fromX] = "#";
+        fromX += Math.sign(dx);
+        dx = toX - fromX;
       }
+
       if (fromX === toX) {
         map[fromY][fromX] = "#";
       }
 
-      if (fromY < toY) {
-        while (fromY < toY) {
-          map[fromY][fromX] = "#";
-          fromY++;
-          if (fromY > biggestY) {
-            biggestY = fromY;
-          }
-        }
-      } else if (fromY > toY) {
-        while (fromY > toY) {
-          map[fromY][fromX] = "#";
-          fromY--;
-        }
+      let dy = toY - fromY;
+      while (Math.sign(dy) !== 0) {
+        map[fromY][fromX] = "#";
+        fromY += Math.sign(dy);
+        dy = toY - fromY;
+        biggestY = Math.max(biggestY, fromY);
       }
 
       if (fromY === toY) {
@@ -56,7 +45,7 @@ const parseInput = (input: string) => {
 
   map = map.filter((_, i) => i <= biggestY + 2);
   Deno.writeTextFile("./files/map.txt", prettifyMap(map));
-  return { map, biggestY };
+  return { map };
 };
 
 const prettifyMap = (map: string[][]) => {
@@ -67,18 +56,10 @@ const prettifyMap = (map: string[][]) => {
   for (let y = 0; y < map.length; y++) {
     for (let x = 0; x < map[y].length; x++) {
       if (map[y][x] !== ".") {
-        if (x < smallestX) {
-          smallestX = x;
-        }
-        if (x > biggestX) {
-          biggestX = x;
-        }
-        if (y < smallestY) {
-          smallestY = y;
-        }
-        if (y > biggestY) {
-          biggestY = y;
-        }
+        smallestX = Math.min(smallestX, x);
+        biggestX = Math.max(biggestX, x);
+        smallestY = Math.min(smallestY, y);
+        biggestY = Math.max(biggestY, y);
       }
     }
   }
@@ -111,7 +92,7 @@ const task1 = (input: string) => {
     }
     if (!isOccupied(x, y + 1)) {
       flow(x, y + 1);
-    } else if (isOccupied(x, y + 1)) {
+    } else {
       if (isOccupied(x - 1, y + 1)) {
         if (isOccupied(x + 1, y + 1)) {
           map[y][x] = "o";
@@ -136,10 +117,10 @@ const task1 = (input: string) => {
 
 const task2 = (input: string) => {
   const sandOrigin = [500, 0];
-  const { map, biggestY } = parseInput(input);
+  const { map } = parseInput(input);
 
   // create floor
-  for (let i = 0; i < map[biggestY].length; i++) {
+  for (let i = 0; i < map[0].length; i++) {
     map.at(-1)![i] = "#";
   }
 
@@ -155,7 +136,7 @@ const task2 = (input: string) => {
     }
     if (!isOccupied(x, y + 1)) {
       flow(x, y + 1);
-    } else if (isOccupied(x, y + 1)) {
+    } else {
       if (isOccupied(x - 1, y + 1)) {
         if (isOccupied(x + 1, y + 1)) {
           map[y][x] = "o";
@@ -178,8 +159,8 @@ const task2 = (input: string) => {
   return sandCount;
 };
 
-console.log("Ex: ", task1(ex));
-console.log("Task1: ", task1(text));
+console.log("Task1(ex): ", task1(ex));
+console.log("Task1(input): ", task1(input));
 
-console.log("Ex: ", task2(ex));
-console.log("Task2: ", task2(text));
+console.log("Task2(ex): ", task2(ex));
+console.log("Task2(input): ", task2(input));
