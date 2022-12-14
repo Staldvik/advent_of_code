@@ -55,11 +55,44 @@ const parseInput = (input: string) => {
   }
 
   map = map.filter((_, i) => i <= biggestY + 2);
-  Deno.writeTextFile(
-    "./files/map.txt",
-    map.map((row) => row.join("")).join("\n")
-  );
+  Deno.writeTextFile("./files/map.txt", prettifyMap(map));
   return { map, biggestY };
+};
+
+const prettifyMap = (map: string[][]) => {
+  let smallestX = Infinity;
+  let biggestX = 0;
+  let smallestY = Infinity;
+  let biggestY = 0;
+  for (let y = 0; y < map.length; y++) {
+    for (let x = 0; x < map[y].length; x++) {
+      if (map[y][x] !== ".") {
+        if (x < smallestX) {
+          smallestX = x;
+        }
+        if (x > biggestX) {
+          biggestX = x;
+        }
+        if (y < smallestY) {
+          smallestY = y;
+        }
+        if (y > biggestY) {
+          biggestY = y;
+        }
+      }
+    }
+  }
+
+  const padding = 4;
+  const filteredMap = map
+    .map((row) =>
+      row.filter((_, x) => x >= smallestX - padding && x <= biggestX + padding)
+    )
+    .filter((_, y) => y >= smallestY - padding)
+    .map((row) => row.join(""))
+    .join("\n");
+
+  return filteredMap;
 };
 
 const task1 = (input: string) => {
@@ -96,10 +129,7 @@ const task1 = (input: string) => {
     flow(sandOrigin[0], sandOrigin[1]);
   }
 
-  Deno.writeTextFile(
-    "./files/mapResult.txt",
-    map.map((row) => row.join("")).join("\n")
-  );
+  Deno.writeTextFile("./files/mapResult.txt", prettifyMap(map));
 
   return sandCount;
 };
@@ -143,12 +173,7 @@ const task2 = (input: string) => {
     flow(sandOrigin[0], sandOrigin[1]);
   }
 
-  console.log(Deno.mainModule);
-
-  Deno.writeTextFile(
-    "./files/mapResult2.txt",
-    map.map((row) => row.join("")).join("\n")
-  );
+  Deno.writeTextFile("./files/mapResult2.txt", prettifyMap(map));
 
   return sandCount;
 };
