@@ -48,7 +48,7 @@ const parseInput = (input: string) => {
   return { map };
 };
 
-const prettifyMap = (map: string[][]) => {
+const prettifyMap = (map: string[][], ignoreLastLine = false) => {
   let smallestX = Infinity;
   let biggestX = 0;
   let smallestY = Infinity;
@@ -56,10 +56,11 @@ const prettifyMap = (map: string[][]) => {
   for (let y = 0; y < map.length; y++) {
     for (let x = 0; x < map[y].length; x++) {
       if (map[y][x] !== ".") {
-        smallestX = Math.min(smallestX, x);
-        biggestX = Math.max(biggestX, x);
         smallestY = Math.min(smallestY, y);
         biggestY = Math.max(biggestY, y);
+        if (ignoreLastLine && y === map.length - 1) continue;
+        smallestX = Math.min(smallestX, x);
+        biggestX = Math.max(biggestX, x);
       }
     }
   }
@@ -154,7 +155,7 @@ const task2 = (input: string) => {
     flow(sandOrigin[0], sandOrigin[1]);
   }
 
-  Deno.writeTextFile("./files/mapResult2.txt", prettifyMap(map));
+  Deno.writeTextFile("./files/mapResult2.txt", prettifyMap(map, true));
 
   return sandCount;
 };
