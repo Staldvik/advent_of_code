@@ -1,3 +1,5 @@
+import { assertEquals } from "https://deno.land/std@0.167.0/testing/asserts.ts";
+
 const input = await Deno.readTextFile(new URL("./input.txt", import.meta.url));
 const ex = await Deno.readTextFile(new URL("./ex.txt", import.meta.url));
 
@@ -18,17 +20,11 @@ const compare = (
   if (!Array.isArray(left) && !Array.isArray(right)) return left < right;
 
   if (Array.isArray(left) && Array.isArray(right)) {
-    let isCorrect: boolean | "undecided" = "undecided";
     for (let i = 0; i < left.length; i++) {
-      isCorrect = compare(left[i], right[i]);
-      if (isCorrect === "undecided") {
-        continue;
-      } else {
-        break;
-      }
+      const isCorrect = compare(left[i], right[i]);
+      if (isCorrect !== "undecided") return isCorrect;
     }
-    if (isCorrect === "undecided" && left.length < right.length) return true;
-    return isCorrect;
+    if (left.length < right.length) return true;
   }
 
   if (Array.isArray(left) && !Array.isArray(right)) {
@@ -73,8 +69,16 @@ const task2 = (input: string) => {
   return divider1Index * divider2Index;
 };
 
-console.log("Task1(ex): ", task1(ex));
-console.log("Task1(input): ", task1(input));
+Deno.test("Task 1", () => {
+  const task1Ex = task1(ex);
+  assertEquals(task1Ex, 13);
+  const task1Input = task1(input);
+  assertEquals(task1Input, 5580);
+});
 
-console.log("Task2(ex): ", task2(ex));
-console.log("Task2(input): ", task2(input));
+Deno.test("Task 2", () => {
+  const task2Ex = task2(ex);
+  assertEquals(task2Ex, 140);
+  const task2Input = task2(input);
+  assertEquals(task2Input, 26200);
+});
