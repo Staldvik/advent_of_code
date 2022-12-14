@@ -1,3 +1,7 @@
+import * as stdPath from "https://deno.land/std@0.102.0/path/mod.ts";
+const mainModulePath = stdPath.dirname(stdPath.fromFileUrl(Deno.mainModule));
+Deno.chdir(mainModulePath);
+
 const text = await Deno.readTextFile(new URL("./input.txt", import.meta.url));
 const ex = await Deno.readTextFile(new URL("./ex.txt", import.meta.url));
 
@@ -51,7 +55,10 @@ const parseInput = (input: string) => {
   }
 
   map = map.filter((_, i) => i <= biggestY + 2);
-  Deno.writeTextFile("map.txt", map.map((row) => row.join("")).join("\n"));
+  Deno.writeTextFile(
+    "./files/map.txt",
+    map.map((row) => row.join("")).join("\n")
+  );
   return { map, biggestY };
 };
 
@@ -90,7 +97,7 @@ const task1 = (input: string) => {
   }
 
   Deno.writeTextFile(
-    "mapResult.txt",
+    "./files/mapResult.txt",
     map.map((row) => row.join("")).join("\n")
   );
 
@@ -136,8 +143,10 @@ const task2 = (input: string) => {
     flow(sandOrigin[0], sandOrigin[1]);
   }
 
+  console.log(Deno.mainModule);
+
   Deno.writeTextFile(
-    "mapResult2.txt",
+    "./files/mapResult2.txt",
     map.map((row) => row.join("")).join("\n")
   );
 

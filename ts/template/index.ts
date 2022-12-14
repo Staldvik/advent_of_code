@@ -1,6 +1,5 @@
 const text = await Deno.readTextFile(new URL("./input.txt", import.meta.url));
 const ex = await Deno.readTextFile(new URL("./ex.txt", import.meta.url));
-const lines = ex.split("\n");
 
 const task1 = (input: string) => {};
 
