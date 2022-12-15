@@ -4,14 +4,9 @@ const input = await Deno.readTextFile(new URL("./input.txt", import.meta.url));
 const parseInput = (input: string) => {
   const lines = input.split("\n");
   const sensors = lines.map((line) => {
-    const [sensorLocation, closestBeacon] = line.split(":").map((s) =>
-      s.split("=").flatMap((s) =>
-        s
-          .split(",")
-          .map((s) => Number(s))
-          .filter((s) => !isNaN(s))
-      )
-    );
+    const [sx, sy, bx, by] = line.match(/-?\d+/g)!;
+    const sensorLocation = [Number(sx), Number(sy)];
+    const closestBeacon = [Number(bx), Number(by)];
     const distanceToBeacon = getManhattanDistance(
       sensorLocation,
       closestBeacon
@@ -23,33 +18,17 @@ const parseInput = (input: string) => {
     };
   });
 
-  const minY = Math.min(
-    ...sensors.map((s) => Math.min(s.sensorLocation[1], s.closestBeacon[1]))
-  );
-  const minX = Math.min(
-    ...sensors.map((s) => {
-      const minXSensorReach =
-        s.sensorLocation[1] -
-        getManhattanDistance(s.sensorLocation, s.closestBeacon);
-      return Math.min(minXSensorReach, s.closestBeacon[0]);
-    })
-  );
-  const maxY = Math.max(
-    ...sensors.map((s) => {
-      const maxXSensorReach =
-        s.sensorLocation[1] +
-        getManhattanDistance(s.sensorLocation, s.closestBeacon);
-      return Math.max(maxXSensorReach, s.closestBeacon[1]);
-    })
-  );
-  const maxX = Math.max(
-    ...sensors.map((s) => {
-      const maxXSensorReach =
-        s.sensorLocation[1] +
-        getManhattanDistance(s.sensorLocation, s.closestBeacon);
-      return Math.max(maxXSensorReach, s.closestBeacon[1]);
-    })
-  );
+  let minY = Infinity;
+  let minX = Infinity;
+  let maxY = -Infinity;
+  let maxX = -Infinity;
+  for (const sensor of sensors) {
+    const sensorReach = sensor.distanceToBeacon;
+    minX = Math.min(minX, sensor.sensorLocation[0] - sensorReach);
+    maxX = Math.max(maxX, sensor.sensorLocation[0] + sensorReach);
+    minY = Math.min(minY, sensor.sensorLocation[1] - sensorReach);
+    maxY = Math.max(maxY, sensor.sensorLocation[1] + sensorReach);
+  }
 
   return { sensors, minX, minY, maxX, maxY };
 };
@@ -60,33 +39,23 @@ const getManhattanDistance = (a: number[], b: number[]) => {
 
 const task1 = (input: string, y: number) => {
   const { sensors, minX, maxX } = parseInput(input);
-  let pointer = minX;
+  let x = minX;
   let counter = 0;
-  while (pointer < maxX) {
+  while (x < maxX) {
     for (const sensor of sensors) {
       const distanceToSensor = getManhattanDistance(
-        [pointer, y],
+        [x, y],
         sensor.sensorLocation
       );
-      const sensorsDistanceToBeacon = getManhattanDistance(
-        sensor.sensorLocation,
-        sensor.closestBeacon
-      );
-      if (distanceToSensor <= sensorsDistanceToBeacon) {
-        if (
-          sensors.some(
-            (s) => s.closestBeacon[0] === pointer && s.closestBeacon[1] === y
-          )
-        ) {
-          break;
-        } else {
-          counter++;
-          break;
-        }
+      if (distanceToSensor <= sensor.distanceToBeacon) {
+        const isBeacon = sensors.some(
+          (s) => s.closestBeacon[0] === x && s.closestBeacon[1] === y
+        );
+        if (!isBeacon) counter++;
+        break;
       }
     }
-
-    pointer++;
+    x++;
   }
   return counter;
 };
@@ -97,33 +66,24 @@ const task2 = (input: string, max: number) => {
   const cMaxY = Math.min(max, maxY);
 
   const checkIfSeenBySensor = (x: number, y: number) => {
-    let seenBySensor = false;
     for (const sensor of sensors) {
       const distanceToSensor = getManhattanDistance(
         [x, y],
         sensor.sensorLocation
       );
-      const sensorsDistanceToBeacon = getManhattanDistance(
-        sensor.sensorLocation,
-        sensor.closestBeacon
-      );
-      if (distanceToSensor <= sensorsDistanceToBeacon) {
-        seenBySensor = true;
+      if (distanceToSensor <= sensor.distanceToBeacon) {
+        return true;
       }
     }
-    return seenBySensor;
+    return false;
   };
 
-  for (const sensor of sensors) {
-    let y = Math.max(0, sensor.sensorLocation[1] - sensor.distanceToBeacon - 1);
-    while (y < sensor.sensorLocation[1] + sensor.distanceToBeacon + 1) {
-      if (y > cMaxY) {
-        break;
-      }
-      const xDiff =
-        sensor.distanceToBeacon - Math.abs(y - sensor.sensorLocation[1]) + 1;
-      const x1 = sensor.sensorLocation[0] - xDiff;
-      const x2 = sensor.sensorLocation[0] + xDiff;
+  for (const { sensorLocation, distanceToBeacon } of sensors) {
+    let y = Math.max(0, sensorLocation[1] - distanceToBeacon - 1);
+    while (y < cMaxY && y < sensorLocation[1] + distanceToBeacon + 1) {
+      const xDiff = distanceToBeacon - Math.abs(y - sensorLocation[1]) + 1;
+      const x1 = sensorLocation[0] - xDiff;
+      const x2 = sensorLocation[0] + xDiff;
 
       if (x1 > 0 && x1 < cMaxX) {
         const seenBySensor = checkIfSeenBySensor(x1, y);
