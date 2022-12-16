@@ -65,17 +65,17 @@ const task1 = (input: string) => {
       if (p.name === state.position) return false;
       if (state.openings.has(p)) return false;
       if (p.flowRate === 0) return false;
-
       return true;
     });
     options.forEach((option) => {
       const openAtMinute =
         state.minutes - costMap.get(`${state.position}, ${option.name}`)! - 1;
 
+      if (openAtMinute < 0) return;
+
       const newState = {
         position: option.name,
         minutes: openAtMinute,
-        openValves: new Set(state.openValves),
         openings: new Map(state.openings),
       };
       newState.openings.set(option, openAtMinute);
@@ -89,15 +89,15 @@ const task1 = (input: string) => {
     openings: new Map(),
   });
 
-  const maxOpenings = Math.max(
-    ...finishedStates.map((s) => {
-      let flowRate = 0;
-      s.openings.forEach((minute, pipe) => {
-        flowRate += pipe.flowRate * minute;
-      });
-      return flowRate;
-    })
-  );
+  let maxOpenings = 0;
+  finishedStates.forEach((s) => {
+    let flowRate = 0;
+    s.openings.forEach((minute, pipe) => {
+      flowRate += pipe.flowRate * minute;
+    });
+    maxOpenings = Math.max(maxOpenings, flowRate);
+  });
+
   return maxOpenings;
 };
 
