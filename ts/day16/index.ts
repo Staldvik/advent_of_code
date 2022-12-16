@@ -39,8 +39,11 @@ const parseInput = (input: string) => {
       for (const tunnel of currentNode.tunnels) {
         queue.push({ name: tunnel, cost: cost + 1 });
       }
-      if (costMap.has(`${pipe.name}, ${currentNode.name}`)) continue;
-      costMap.set(`${pipe.name}, ${currentNode.name}`, cost);
+      const currentCost = costMap.get(`${pipe.name}, ${currentNode.name}`);
+      costMap.set(
+        `${pipe.name}, ${currentNode.name}`,
+        Math.min(cost, currentCost ?? Infinity)
+      );
     }
   }
 
@@ -55,7 +58,7 @@ type State = {
 
 const task1 = (input: string) => {
   const { pipes, costMap } = parseInput(input);
-  const startPosition = pipes[0];
+  const startPosition = pipes.find((p) => p.name === "AA")!;
   const startingMinutes = 30;
 
   const finishedStates: State[] = [];
@@ -65,13 +68,13 @@ const task1 = (input: string) => {
       if (p.name === state.position) return false;
       if (state.openings.has(p)) return false;
       if (p.flowRate === 0) return false;
+      if (state.minutes - costMap.get(`${state.position}, ${p.name}`)! < 0)
+        return false;
       return true;
     });
     options.forEach((option) => {
       const openAtMinute =
         state.minutes - costMap.get(`${state.position}, ${option.name}`)! - 1;
-
-      if (openAtMinute < 0) return;
 
       const newState = {
         position: option.name,
