@@ -1,20 +1,9 @@
 fn calculate_every_elf() -> Vec<u32> {
     let text_file = std::fs::read_to_string("src/input.txt").unwrap();
-    let lines = text_file.lines();
-    let mut elfs: Vec<u32> = Vec::new();
-
-    let mut current_elf = 0;
-    for line in lines {
-        if line.is_empty() {
-            elfs.push(current_elf);
-            current_elf = 0;
-        } else {
-            let cals = line.parse::<u32>().unwrap();
-            current_elf += cals;
-        }
-    }
-    elfs.push(current_elf);
-    elfs
+    text_file
+        .split("\n\n")
+        .map(|elf| elf.split("\n").map(|num| num.parse::<u32>().unwrap()).sum())
+        .collect()
 }
 
 fn task1() -> u32 {
