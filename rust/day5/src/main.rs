@@ -1,4 +1,4 @@
-use std::fs::read_to_string;
+use std::{fs::read_to_string, str::FromStr};
 
 #[derive(Debug)]
 struct Stack {
@@ -45,6 +45,56 @@ impl StorageDepot {
     }
 }
 
+impl FromStr for StorageDepot {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let mut storage_depot: StorageDepot = StorageDepot::new();
+        let stacks = &mut storage_depot.stacks;
+
+        for row in s.lines().rev() {
+            for (offset, c) in row.char_indices().step_by(4) {
+                if c == '[' {
+                    let stack_index = if offset == 0 { 0 } else { offset / 4 };
+                    let next_crate = row.chars().nth(offset + 1).unwrap();
+                    match stacks.get_mut(stack_index) {
+                        Some(stack) => stack.place_crates(&[next_crate]),
+                        None => {
+                            let mut new_stack = Stack::new();
+                            new_stack.place_crates(&[next_crate]);
+                            stacks.push(new_stack);
+                        }
+                    }
+                }
+            }
+        }
+
+        Ok(storage_depot)
+    }
+}
+
+struct Move {
+    amount: usize,
+    from: usize,
+    to: usize,
+}
+
+impl FromStr for Move {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let instructions: Vec<_> = s
+            .split_whitespace()
+            .filter_map(|s| s.parse::<usize>().ok())
+            .collect();
+
+        match instructions[0..=2] {
+            [amount, from, to] => Ok(Self { amount, from, to }),
+            _ => panic!("Malformed instructions?"),
+        }
+    }
+}
+
 fn main() {
     let input = read_to_string("src/input.txt").unwrap();
 
@@ -52,36 +102,18 @@ fn main() {
         .split_once("\n\n")
         .expect("Malformed input? No double newline found");
 
-    let mut storage_depot: StorageDepot = StorageDepot::new();
+    let mut storage_depot = crates
+        .parse::<StorageDepot>()
+        .expect("Couldn't parse crates into StorageDepot");
+
     let stacks = &mut storage_depot.stacks;
 
-    for row in crates.lines().rev() {
-        for (offset, c) in row.char_indices().step_by(4) {
-            if c == '[' {
-                let stack_index = if offset == 0 { 0 } else { offset / 4 };
-                let next_crate = row.chars().nth(offset + 1).unwrap();
-                match stacks.get_mut(stack_index) {
-                    Some(stack) => stack.place_crates(&[next_crate]),
-                    None => {
-                        let mut new_stack = Stack::new();
-                        new_stack.place_crates(&[next_crate]);
-                        stacks.push(new_stack);
-                    }
-                }
-            }
-        }
-    }
-
     for row in instructions.lines() {
-        let instructions: Vec<_> = row
-            .split_whitespace()
-            .filter_map(|s| s.parse::<usize>().ok())
-            .collect();
+        let current_move = row
+            .parse::<Move>()
+            .expect("Couldn't parse instruction into Move");
 
-        let (amount, from, to) = match instructions[0..=2] {
-            [amount, from, to] => (amount, from, to),
-            _ => panic!("Malformed instructions?"),
-        };
+        let Move { amount, from, to } = current_move;
 
         for _ in 0..amount {
             if let Some(crate_to_move) = stacks.get_mut(from - 1).unwrap().lift(1).last() {
