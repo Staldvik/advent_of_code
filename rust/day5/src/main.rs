@@ -8,26 +8,29 @@ enum CrateMover {
     V9001,
 }
 
-#[derive(Debug)]
 struct StorageDepot {
     stacks: Vec<Stack>,
+    crate_mover: CrateMover,
 }
 
 impl StorageDepot {
     fn get_top_row(&self) -> String {
-        let mut result = String::new();
-        for char in self.stacks.iter().filter_map(|s| s.last()) {
-            result.push_str(&char.to_string());
-        }
-        return result;
+        self.stacks
+            .iter()
+            .filter_map(|stack| stack.last())
+            .collect()
     }
 
-    fn move_crates(&mut self, moves: Vec<Move>, mover: CrateMover) {
+    fn use_crate_mover(&mut self, new_mover: CrateMover) {
+        self.crate_mover = new_mover;
+    }
+
+    fn move_crates(&mut self, moves: Vec<Move>) {
         for Move { amount, from, to } in moves {
             let stack = self.stacks.get_mut(from - 1).unwrap();
             let crates_to_move = stack.split_off(stack.len() - amount);
 
-            match mover {
+            match self.crate_mover {
                 CrateMover::V9000 => self.stacks[to - 1].extend(crates_to_move.iter().rev()),
                 CrateMover::V9001 => self.stacks[to - 1].extend(crates_to_move.iter()),
             }
@@ -59,7 +62,10 @@ impl FromStr for StorageDepot {
             }
         }
 
-        return Ok(StorageDepot { stacks });
+        return Ok(StorageDepot {
+            stacks,
+            crate_mover: CrateMover::V9000,
+        });
     }
 }
 
@@ -107,13 +113,14 @@ fn parse_input(input: &String) -> (StorageDepot, Moves) {
 
 fn part_1(input: &String) {
     let (mut storage_depot, moves) = parse_input(input);
-    storage_depot.move_crates(moves, CrateMover::V9000);
+    storage_depot.move_crates(moves);
     println!("Part 1 answer is: {:?}", storage_depot.get_top_row());
 }
 
 fn part_2(input: &String) {
     let (mut storage_depot, moves) = parse_input(input);
-    storage_depot.move_crates(moves, CrateMover::V9001);
+    storage_depot.use_crate_mover(CrateMover::V9001);
+    storage_depot.move_crates(moves);
     println!("Part 2 answer is: {:?}", storage_depot.get_top_row());
 }
 
