@@ -1,6 +1,6 @@
 use std::{collections::HashMap, fs};
 
-fn task1(input: &String) {
+fn parse(input: &String) -> HashMap<String, usize> {
     let mut sizes: HashMap<String, usize> = HashMap::new();
     let mut visited_dirs: Vec<&str> = vec![];
     for line in input.lines() {
@@ -35,6 +35,11 @@ fn task1(input: &String) {
         }
     }
 
+    return sizes;
+}
+
+fn task1(input: &String) {
+    let sizes = parse(input);
     let sum: usize = sizes
         .iter()
         .map(|(_, x)| x)
@@ -44,14 +49,31 @@ fn task1(input: &String) {
     println!("Task 1 is {sum}");
 }
 
-// fn task2(input: &String) {
-//     todo!()
-// }
+const TOTAL_SIZE: usize = 70_000_000;
+const REQUIRED_SIZE: usize = 30_000_000;
+
+fn task2(input: &String) {
+    let sizes = parse(input);
+    let current_size = sizes.get("/").unwrap();
+    let free_space = TOTAL_SIZE - current_size;
+    let clean_size = REQUIRED_SIZE - free_space;
+
+    let mut sizes = sizes.iter().map(|x| x.1).collect::<Vec<_>>();
+    sizes.sort();
+
+    for size in sizes {
+        if size >= &clean_size {
+            println!("Task 2 is {size}");
+            return;
+        }
+    }
+}
 
 fn main() {
-    let ex_input = fs::read_to_string("src/ex.txt").unwrap();
+    // let ex_input = fs::read_to_string("src/ex.txt").unwrap();
     let input = fs::read_to_string("src/input.txt").unwrap();
-    task1(&ex_input);
+    // task1(&ex_input);
     task1(&input);
-    // task2(&input);
+    // task2(&ex_input);
+    task2(&input);
 }
