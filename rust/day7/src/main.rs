@@ -1,7 +1,7 @@
 use std::{collections::HashMap, fs};
 
 fn task1(input: &String) {
-    let mut sizes: HashMap<&str, usize> = HashMap::new();
+    let mut sizes: HashMap<String, usize> = HashMap::new();
     let mut visited_dirs: Vec<&str> = vec![];
     for line in input.lines() {
         let words: Vec<_> = line.split(" ").collect();
@@ -22,11 +22,14 @@ fn task1(input: &String) {
             ("dir", _) => {}
             (file_size, _) => {
                 let file_size = file_size.parse::<usize>().unwrap();
-                for dir in visited_dirs.iter() {
+                let mut paths_to_update = visited_dirs.clone();
+                let mut path = paths_to_update.join("/");
+                while paths_to_update.pop().is_some() {
                     sizes
-                        .entry(dir)
-                        .and_modify(|s| *s += file_size)
+                        .entry(path)
+                        .and_modify(|x| *x += file_size)
                         .or_insert(file_size);
+                    path = paths_to_update.join("/");
                 }
             }
         }
