@@ -65,7 +65,7 @@ fn part_2(input: &String) -> () {
 }
 
 fn main() {
-    let input = fs::read_to_string("src/input.txt").unwrap();
+    let input = fs::read_to_string("src/bin/day4/input.txt").unwrap();
     part_1(&input);
     part_2(&input);
 }

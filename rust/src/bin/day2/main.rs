@@ -71,7 +71,7 @@ impl Strategy {
 }
 
 fn main() {
-    let text_file = std::fs::read_to_string("src/input.txt").unwrap();
+    let text_file = std::fs::read_to_string("src/bin/day2/input.txt").unwrap();
     let rounds: Vec<&str> = text_file.lines().collect();
 
     let mut part1: u32 = 0;

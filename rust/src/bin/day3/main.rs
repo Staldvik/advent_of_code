@@ -7,7 +7,7 @@ fn char_to_priority(c: char) -> i32 {
 }
 
 fn part_1() -> i32 {
-    let text_file = std::fs::read_to_string("src/input.txt").unwrap();
+    let text_file = std::fs::read_to_string("src/bin/day3/input.txt").unwrap();
     let rucksacks = text_file.lines();
     let sum: i32 = rucksacks
         .map(|rucksack| {
@@ -26,7 +26,7 @@ fn part_1() -> i32 {
 }
 
 fn part_2() -> i32 {
-    let text_file = std::fs::read_to_string("src/input.txt").unwrap();
+    let text_file = std::fs::read_to_string("src/bin/day3/input.txt").unwrap();
     let rucksacks: Vec<&str> = text_file.lines().collect();
     let mut groups = rucksacks.chunks(3);
 

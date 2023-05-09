@@ -125,7 +125,7 @@ fn part_2(input: &String) {
 }
 
 fn main() {
-    let input = read_to_string("src/input.txt").unwrap();
+    let input = read_to_string("src/bin/day5/input.txt").unwrap();
     part_1(&input);
     part_2(&input);
 }

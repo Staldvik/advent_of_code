@@ -50,7 +50,7 @@ fn task2(input: &String) {
 }
 
 fn main() {
-    let input = read_to_string("src/input.txt").unwrap();
+    let input = read_to_string("src/bin/day6/input.txt").unwrap();
     task1(&input);
     task2(&input);
 }

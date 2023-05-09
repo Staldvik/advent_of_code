@@ -1,5 +1,5 @@
 fn calculate_every_elf() -> Vec<u32> {
-    let text_file = std::fs::read_to_string("src/input.txt").unwrap();
+    let text_file = std::fs::read_to_string("src/bin/day1/input.txt").unwrap();
     text_file
         .split("\n\n")
         .map(|elf| elf.split("\n").map(|num| num.parse::<u32>().unwrap()).sum())
