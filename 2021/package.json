@@ -1,0 +1,16 @@
+{
+  "name": "2021",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon day1/index.ts"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^20.10.1",
+    "nodemon": "^3.0.1",
+    "ts-node": "^10.9.1"
+  }
+}
