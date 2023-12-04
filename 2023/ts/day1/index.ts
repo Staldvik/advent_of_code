@@ -36,7 +36,7 @@ const findFirstNum = (line: string) => {
   for (let i = 0; i < line.length; i++) {
     let char = line[i];
     foundChars += char;
-    if (!isNaN(parseInt(char))) return char;
+    if (!isNaN(parseInt(char!))) return char;
 
     const foundWordDigit = Object.entries(wordDigits).find(([wordDigit]) =>
       foundChars.includes(wordDigit)
@@ -52,7 +52,7 @@ const findLastNum = (line: string) => {
     let char = line[i];
     foundChars = `${char}${foundChars}`;
 
-    if (!isNaN(parseInt(char))) return char;
+    if (!isNaN(parseInt(char!))) return char;
 
     const foundWordDigit = Object.entries(wordDigits).find(([wordDigit]) =>
       foundChars.includes(wordDigit)

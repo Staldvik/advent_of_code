@@ -14,9 +14,9 @@ const part1 = (input: string) => {
 
   let sum = 0;
   for (const line of lines) {
-    const [winners, given] = line.split(":")[1].split("|");
-    const winnerNums = getSpaceSeparatedNumbers(winners);
-    const givenNums = getSpaceSeparatedNumbers(given);
+    const [winners, given] = line.split(":")[1]!.split("|");
+    const winnerNums = getSpaceSeparatedNumbers(winners!);
+    const givenNums = getSpaceSeparatedNumbers(given!);
 
     const matches = givenNums.filter((num) => winnerNums.includes(num));
 
@@ -28,7 +28,7 @@ const part1 = (input: string) => {
 
 const parseId = (card: string) => {
   let [cardString] = card.split(":");
-  cardString = cardString.replace("Card", "").trim();
+  cardString = cardString!.replace("Card", "").trim();
   return parseInt(cardString);
 };
 
@@ -41,9 +41,9 @@ const part2 = (input: string) => {
     const id = parseId(card);
     const copies = cardCopies[id] || 1;
 
-    const [winners, given] = card.split(":")[1].split("|");
-    const winnerNums = getSpaceSeparatedNumbers(winners);
-    const givenNums = getSpaceSeparatedNumbers(given);
+    const [winners, given] = card.split(":")[1]!.split("|");
+    const winnerNums = getSpaceSeparatedNumbers(winners!);
+    const givenNums = getSpaceSeparatedNumbers(given!);
 
     const matches = givenNums.filter((num) => winnerNums.includes(num));
 

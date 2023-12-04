@@ -15,7 +15,7 @@ const checkDirections = (numberPos: [number, number], rows: string[]) => {
     [1, -1],
     [1, 0],
     [1, 1],
-  ];
+  ] as const;
 
   let specialChars = /[`!@#$%^&*()_\-+=\[\]{};':"\\|,<>\/?~ ]/;
 
@@ -23,7 +23,7 @@ const checkDirections = (numberPos: [number, number], rows: string[]) => {
     const [x, y] = direction;
     const row = rows[numberPos[0] + x];
     if (row) {
-      const char = row[numberPos[1] + y];
+      const char = row[numberPos[1] + y]!;
       if (specialChars.test(char)) {
         let isGear = char === "*";
         return {
@@ -44,8 +44,8 @@ const part1 = (input: string) => {
   for (let row = 0; row < rows.length; row++) {
     let number = "";
     let keepNumber = false;
-    for (let column = 0; column < rows[0].length; column++) {
-      const char = rows[row][column];
+    for (let column = 0; column < rows[0]!.length; column++) {
+      const char = rows[row]![column]!;
       // Skip if no number is/will be started
       if (!isDigit(char) && !number.length) continue;
 
@@ -62,7 +62,7 @@ const part1 = (input: string) => {
         number = "";
       }
 
-      if (column === rows[0].length - 1 && number.length && keepNumber) {
+      if (column === rows[0]!.length - 1 && number.length && keepNumber) {
         keepNumber = false;
         keptNumbers.push(parseInt(number));
         number = "";
@@ -86,8 +86,8 @@ const part2 = (input: string) => {
     let number = "";
     let keepNumber = false;
     let connectedToGear = "";
-    for (let column = 0; column < rows[0].length; column++) {
-      const char = rows[row][column];
+    for (let column = 0; column < rows[0]!.length; column++) {
+      const char = rows[row]![column]!;
       // Skip if no number is/will be started
       if (!isDigit(char) && !number.length) continue;
 
@@ -120,7 +120,7 @@ const part2 = (input: string) => {
         number = "";
       }
 
-      if (column === rows[0].length - 1 && number.length && keepNumber) {
+      if (column === rows[0]!.length - 1 && number.length && keepNumber) {
         keptNumbers.push(parseInt(number));
         if (connectedToGear) {
           gearMap.set(connectedToGear, [
@@ -139,7 +139,7 @@ const part2 = (input: string) => {
 
   gearMap.forEach((numbers, gearPos) => {
     if (numbers.length === 2) {
-      sum += numbers[0] * numbers[1];
+      sum += numbers[0]! * numbers[1]!;
     }
   });
 

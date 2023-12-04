@@ -21,7 +21,7 @@ const part1 = (input: string) => {
     }
 
     if (possible) {
-      sum += parseInt(gameId);
+      sum += parseInt(gameId!);
     }
   }
 
