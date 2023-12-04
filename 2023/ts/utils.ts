@@ -11,13 +11,13 @@ export const getInputFile = (dirname: string) =>
 
 export const testSolution = (
   answer: string,
-  solutionFn: Function,
+  solutionFn: (input: string) => unknown,
   input: string
 ) => {
   const result = solutionFn(input);
   if (result != answer) {
     console.error(`Expected ${answer}, got ${result}`);
   } else {
-    console.log("Success! Expected and got", result);
+    console.log("Test Success! Expected and got", result);
   }
 };
