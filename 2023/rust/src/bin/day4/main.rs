@@ -1,5 +1,5 @@
 fn read_file() -> String {
-    std::fs::read_to_string("src/bin/day3/test.txt").unwrap()
+    std::fs::read_to_string("src/bin/day4/test.txt").unwrap()
 }
 
 #[derive(Debug)]
