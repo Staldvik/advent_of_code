@@ -49,7 +49,7 @@ const part2 = (input: string) => {
     const matches = given.filter((num) => winners.includes(num));
 
     matches.forEach((match, i) => {
-      cardCopies[id + i + 1] = (cardCopies[id + i + 1] || 1) + 1 * copies;
+      cardCopies[id + i + 1] = (cardCopies[id + i + 1] || 1) + copies;
     });
 
     sum += copies;
