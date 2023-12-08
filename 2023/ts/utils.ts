@@ -1,7 +1,7 @@
 import { readFileSync } from "fs";
 import path from "path";
 
-const readFile = (dirname: string) => (fileName: string) =>
+export const readFile = (dirname: string) => (fileName: string) =>
   readFileSync(path.join(dirname, fileName), "utf-8");
 
 export const getTestFile = (dirname: string) => readFile(dirname)("./test.txt");
