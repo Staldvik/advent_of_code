@@ -19,23 +19,30 @@ const buildNumberBreakdown = (numbers: number[]) => {
   return numberBreakdown;
 };
 
+const getNum = (
+  breakDown: number[][],
+  left: number,
+  i: number,
+  depth: number
+): number => {
+  if (depth === breakDown.length - 1) {
+    return left + breakDown[depth].at(-1)!;
+  }
+  const newLeftNum = breakDown[depth + 1].at(-1)!;
+  return left + getNum(breakDown, newLeftNum, i - 1, depth + 1);
+};
+
 const part1 = (input: string) => {
   const lines = input.split("\n").map((line) => line.split(" ").map(Number));
 
   let sum = 0;
   for (const line of lines) {
     const numberBreakdown = buildNumberBreakdown(line);
-    const getNum = (i: number, left: number, depth: number): number => {
-      if (depth === numberBreakdown.length - 1) {
-        return left + numberBreakdown[depth].at(-1)!;
-      }
-      const newLeftNum = numberBreakdown[depth + 1].at(-1)!;
-      return left + getNum(i - 1, newLeftNum, depth + 1);
-    };
 
     sum += getNum(
-      numberBreakdown[0].length - 1,
+      numberBreakdown,
       numberBreakdown[0][numberBreakdown[0].length - 1],
+      numberBreakdown[0].length - 1,
       0
     );
   }
@@ -48,17 +55,14 @@ const part2 = (input: string) => {
 
   let sum = 0;
   for (const line of lines) {
-    const numberBreakdown = buildNumberBreakdown(line);
+    const numberBreakdown = buildNumberBreakdown(line.toReversed());
 
-    const getNum = (i: number, right: number, depth: number): number => {
-      if (depth === numberBreakdown.length - 1) {
-        return right - numberBreakdown[depth].at(0)!;
-      }
-      const newRightNum = numberBreakdown[depth + 1].at(0)!;
-      return right - getNum(i - 1, newRightNum, depth + 1);
-    };
-
-    sum += getNum(0, numberBreakdown[0][0], 0);
+    sum += getNum(
+      numberBreakdown,
+      numberBreakdown[0][numberBreakdown[0].length - 1],
+      numberBreakdown[0].length - 1,
+      0
+    );
   }
 
   return sum;
