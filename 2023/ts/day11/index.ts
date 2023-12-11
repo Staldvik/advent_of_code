@@ -7,11 +7,9 @@ type Pos = {
   x: number;
   y: number;
   name: string;
-  hCrossed: number[];
-  vCrossed: number[];
 };
 
-const expandAndGetGalaxies = (input: string, boundaryCost = 1) => {
+const expandAndGetGalaxies = (input: string, boundarySize = 1) => {
   let rows = input.split("\n");
   const vBoundaries: number[] = [];
   const hBoundaries: number[] = [];
@@ -45,12 +43,13 @@ const expandAndGetGalaxies = (input: string, boundaryCost = 1) => {
         const hCrossed = hBoundaries.filter((yBoundary) => galaxyY > yBoundary);
         const vCrossed = vBoundaries.filter((xBoundary) => galaxyX > xBoundary);
 
+        const yPenalty = hCrossed.length * Math.max(1, boundarySize - 1);
+        const xPenalty = vCrossed.length * Math.max(1, boundarySize - 1);
+
         galaxies.push({
-          x: galaxyX + vCrossed.length * boundaryCost,
-          y: galaxyY + hCrossed.length * boundaryCost,
+          x: galaxyX + xPenalty,
+          y: galaxyY + yPenalty,
           name: `Galaxy #${galaxies.length + 1}`,
-          hCrossed,
-          vCrossed,
         });
       }
     }
@@ -59,42 +58,27 @@ const expandAndGetGalaxies = (input: string, boundaryCost = 1) => {
   return galaxies;
 };
 
-const part1 = (input: string) => {
-  const galaxies = expandAndGetGalaxies(input);
-
-  let sum = 0;
-  for (const galaxy of galaxies) {
-    const restOfGalaxies = galaxies.filter((pos) => pos.name !== galaxy.name);
-    sum += restOfGalaxies.reduce((acc, curr) => {
+const sumGalaxyDistances = (galaxies: Pos[]) =>
+  galaxies.reduce((total, galaxy, i, arr) => {
+    // Check against galaxies to the right to avoid duplicating pairs
+    const largerGalaxies = arr.slice(i);
+    const galaxySum = largerGalaxies.reduce((galaxySum, largerGalaxy) => {
       const distance =
-        Math.abs(galaxy.y - curr.y) + Math.abs(galaxy.x - curr.x);
-
-      return acc + distance;
+        Math.abs(galaxy.y - largerGalaxy.y) +
+        Math.abs(galaxy.x - largerGalaxy.x);
+      return galaxySum + distance;
     }, 0);
-  }
+    return total + galaxySum;
+  }, 0);
 
-  return sum / 2;
+const solve = (expandSize: number) => (input: string) => {
+  const galaxies = expandAndGetGalaxies(input, expandSize);
+  return sumGalaxyDistances(galaxies);
 };
 
-const part2 = (input: string) => {
-  const galaxies = expandAndGetGalaxies(input, 999_999);
+testSolution("374", solve(1), testFile);
+testSolution("1030", solve(10), testFile);
+testSolution("8410", solve(100), testFile);
 
-  let sum = 0;
-  for (const galaxy of galaxies) {
-    const restOfGalaxies = galaxies.filter((pos) => pos.name !== galaxy.name);
-    sum += restOfGalaxies.reduce((acc, curr) => {
-      const distance =
-        Math.abs(galaxy.y - curr.y) + Math.abs(galaxy.x - curr.x);
-
-      return acc + distance;
-    }, 0);
-  }
-
-  return sum / 2;
-};
-
-// testSolution("374", part1, testFile);
-// testSolution("1030", part2, testFile);
-
-// console.log("Part 1:", part1(inputFile));
-console.log("Part 2:", part2(inputFile)); // 504715573144 (too high)
+console.log("Part 1:", solve(1)(inputFile));
+console.log("Part 2:", solve(1_000_000)(inputFile));
