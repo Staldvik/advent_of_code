@@ -77,8 +77,7 @@ const part1 = (input: string) => {
 };
 
 const part2 = (input: string) => {
-  const galaxies = expandAndGetGalaxies(input, 10);
-  // const galaxies = expandAndGetGalaxies(input, 1_000_000);
+  const galaxies = expandAndGetGalaxies(input, 999_999);
 
   let sum = 0;
   for (const galaxy of galaxies) {
@@ -95,7 +94,7 @@ const part2 = (input: string) => {
 };
 
 // testSolution("374", part1, testFile);
-testSolution("1030", part2, testFile);
+// testSolution("1030", part2, testFile);
 
 // console.log("Part 1:", part1(inputFile));
-// console.log("Part 2:", part2(inputFile)); // 504715573144 (too high)
+console.log("Part 2:", part2(inputFile)); // 504715573144 (too high)
