@@ -6,7 +6,7 @@ const inputFile = getInputFile(__dirname);
 const columnToLine = (lines: string[], colI: number) =>
   lines.map((l) => l[colI]).join("");
 
-const findRowI = (pattern: string, allowSmudge = false) => {
+const findRowI = (pattern: string) => {
   const lines = pattern.split("\n");
   for (let rowI = 0; rowI < lines.length; rowI++) {
     const above = lines.at(rowI);
@@ -30,7 +30,7 @@ const findRowI = (pattern: string, allowSmudge = false) => {
   return 0;
 };
 
-const findColI = (pattern: string, allowSmudge = false) => {
+const findColI = (pattern: string) => {
   const lines = pattern.split("\n");
   for (let colI = 0; colI < lines[0].length; colI++) {
     const left = columnToLine(lines, colI);
@@ -71,9 +71,14 @@ const part1 = (input: string) => {
   return sum;
 };
 
-const couldMatch = (a: string, b: string): false | string => {
+const swap = (a: string, i: number) => {
+  if (a[i] === "#") return a.slice(0, i) + "." + a.slice(i + 1);
+  return a.slice(0, i) + "#" + a.slice(i + 1);
+};
+
+const getDiffI = (a: string, b: string): number | false => {
   if (!a || !b) return false;
-  if (a === b) return false;
+
   let diffI = -1;
   for (let i = 0; i < a.length; i++) {
     if (a[i] !== b[i]) {
@@ -81,8 +86,8 @@ const couldMatch = (a: string, b: string): false | string => {
       diffI = i;
     }
   }
-  if (a[diffI] === "#") return a.slice(0, diffI) + "." + a.slice(diffI + 1);
-  return a.slice(0, diffI) + "#" + a.slice(diffI + 1);
+
+  return diffI;
 };
 
 const part2 = (input: string) => {
@@ -95,20 +100,46 @@ const part2 = (input: string) => {
     console.log("🚀 ~ file: index.ts:95 ~ part2 ~ pattern:", pattern);
     count++;
     const lines = pattern.split("\n");
+    let lowRowI = 0;
     for (let rowI = 0; rowI < lines.length; rowI++) {
       const above = lines.at(rowI)!;
       const below = lines.at(rowI + 1)!;
 
-      const possible = couldMatch(above, below);
-      if (!possible) continue;
+      if (above === below) {
+        console.log("ABOVE === BELOW", above, below);
+        let hasRemovedSmudge = false;
+        let matches = true;
+        let offset = 1;
+        while (true) {
+          if (rowI - offset < 0 || rowI + 1 + offset >= lines.length) break;
+          const offsetAbove = lines.at(rowI - offset)!;
+          const offsetBelow = lines.at(rowI + 1 + offset)!;
+          if (offsetAbove !== offsetBelow) {
+            if (!hasRemovedSmudge && getDiffI(offsetAbove, offsetBelow)) {
+              hasRemovedSmudge = true;
+              offset++;
+              continue;
+            }
+            matches = false;
+          }
+          offset++;
+        }
 
-      console.log("RowI", rowI, possible);
+        if (matches) {
+          lowRowI = rowI + 1;
+        }
+      }
 
-      const newPattern = lines.with(rowI, possible).join("\n");
-      const newSum = findRowI(newPattern);
-      if (newSum) {
-        sum += newSum;
-        break;
+      let diffI = getDiffI(above, below);
+
+      if (diffI) {
+        console.log("DIFF ROW I");
+        const newPattern = lines.with(rowI, swap(above, diffI)).join("\n");
+        const newSum = findRowI(newPattern);
+        if (newSum) {
+          sum += newSum;
+          break;
+        }
       }
     }
 
@@ -116,16 +147,26 @@ const part2 = (input: string) => {
       const left = columnToLine(lines, colI);
       const right = columnToLine(lines, colI + 1);
 
-      const possible = couldMatch(left, right);
-      if (!possible) continue;
+      if (left === right) {
+        console.log("LEFT === RIGHT", left, right);
+        const newSum = findColI(pattern);
+        if (newSum) {
+          sum += newSum;
+          break;
+        }
+      }
 
-      const newPattern = lines
-        .map((l) => l.slice(0, colI) + possible + l.slice(colI + 1))
-        .join("\n");
-      const newSum = findColI(newPattern);
-      if (newSum) {
-        sum += newSum;
-        break;
+      let diffI = getDiffI(left, right);
+
+      if (diffI) {
+        const newPattern = lines
+          .map((l) => swap(l, diffI as number))
+          .join("\n");
+        const newSum = findColI(newPattern);
+        if (newSum) {
+          sum += newSum;
+          break;
+        }
       }
     }
   }
