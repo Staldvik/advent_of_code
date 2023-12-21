@@ -23,32 +23,78 @@ function generateCombinations(
   return combinations;
 }
 
+function generateCombinations2(str: string): string[] {
+  const combinations = [];
+  if (str.includes("?")) {
+    const index = str.indexOf("?");
+    const replacedWithDot = str.slice(0, index) + "." + str.slice(index + 1);
+    const replacedWithHash = str.slice(0, index) + "#" + str.slice(index + 1);
+    combinations.push(
+      ...generateCombinations2(replacedWithDot),
+      ...generateCombinations2(replacedWithHash)
+    );
+  } else {
+    combinations.push(str);
+  }
+  return combinations;
+}
+
+function filterCombinations(
+  combinations: string[],
+  counts: number[]
+): string[] {
+  return combinations.flatMap((combination) => {
+    console.log(
+      "🚀 ~ file: index.ts:56 ~ returncombinations.filter ~ combination:",
+      combination
+    );
+
+    const hashGroups = combination
+      .split(".")
+      .filter((part) => part.includes("#"));
+
+    if (!hashGroups.length) return [];
+    if (hashGroups.every((group, index) => group.length === counts[index]))
+      return [combination];
+  });
+}
+
 const part1 = (input: string) => {
   const lines = input.split("\n");
 
-  for (const line of lines) {
+  let sum = 0;
+  for (const line of lines.slice(0, 1)) {
+    console.log("🚀 ~ file: index.ts:63 ~ part1 ~ line:", line);
     const [springLine, recordLine] = line.split(" ");
 
     const springBlocks = springLine.split(".").filter(Boolean);
     const brokenBlocks = recordLine.split(",").map(Number);
 
-    const possibleCombinations = [];
-
     const result = generateCombinations(
       springBlocks.join(""),
       brokenBlocks.length
-    ).filter((c) => {
-      for (let i = 0; i < brokenBlocks.length; i++) {
-        const blockLength = brokenBlocks[i];
-        if (c[i].length < blockLength) return false;
-      }
-      return true;
-    });
+    )
+      .filter((c) => {
+        for (let i = 0; i < brokenBlocks.length; i++) {
+          const blockLength = brokenBlocks[i];
+          if (c[i].length < blockLength) return false;
+        }
+        return true;
+      })
+      .map((c) => {
+        const allCombinations = c.map((c1) => generateCombinations2(c1));
+        const validCombinations = allCombinations.map((combinations, index) => {
+          return filterCombinations(combinations, [brokenBlocks[index]]);
+        });
 
-    possibleCombinations.push(result);
+        return validCombinations;
+      });
+    console.log("🚀 ~ file: index.ts:88 ~ part1 ~ result:", result);
 
-    const solve = (springBlock: string, mustHave: number) => {};
+    sum += 1;
   }
+
+  return sum;
 };
 
 testSolution("21", part1, testFile);
