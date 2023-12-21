@@ -4,7 +4,8 @@ const testFile = getTestFile(__dirname);
 const inputFile = getInputFile(__dirname);
 
 // px{a<2006:qkq,m>2090:A,rfg}
-const parseWorkflows = (workflowLines: string[]) => {
+type Workflows = Map<string, string[]>;
+const parseWorkflows = (workflowLines: string[]): Workflows => {
   const workflows = new Map<string, string[]>();
   for (const line of workflowLines) {
     const name = line.split("{")[0];
@@ -33,61 +34,43 @@ const sumRating = (rating: Rating) => {
   return sum;
 };
 
+const runWorkflow = (
+  rating: Rating,
+  workflowName: string,
+  workflows: Workflows
+): boolean => {
+  if (workflowName === "A") return true;
+  if (workflowName === "R") return false;
+
+  const workflow = workflows.get(workflowName)!;
+  const fallback = workflow.at(-1)!;
+
+  for (const condition of workflow) {
+    if (!condition.includes(":")) {
+      return runWorkflow(rating, condition, workflows);
+    }
+    const [comp, dest] = condition.split(":");
+    const variable = comp.slice(0, 1);
+    const variableValue = rating.get(variable)!.toString();
+    const conditionWithValue = comp.replace(variable, variableValue);
+
+    const passed = eval(conditionWithValue);
+    if (passed) return runWorkflow(rating, dest, workflows);
+  }
+
+  return runWorkflow(rating, fallback, workflows);
+};
+
 const part1 = (input: string) => {
   const [workflows, ratings] = input.split("\n\n").map((l) => l.split("\n"));
   const workflowsMap = parseWorkflows(workflows);
-  const ratingPositions = new Map<Rating, string>();
+
   let sum = 0;
-  for (const line of ratings) {
-    const rating = parseRating(line);
-    ratingPositions.set(rating, "in");
-    let valid = true;
-    let i = 0;
-    while (true) {
-      const currentPos = ratingPositions.get(rating)!;
-      if (currentPos === "A") {
-        valid = true;
-        break;
-      }
-      if (currentPos === "R") {
-        valid = false;
-        break;
-      }
-      const condition = workflowsMap.get(currentPos)![i];
-      if (condition === "A") {
-        valid = true;
-        break;
-      }
-      if (condition === "R") {
-        valid = false;
-        break;
-      }
-      if (!condition.includes(":")) {
-        ratingPositions.set(rating, condition);
-        i = 0;
-        continue;
-      }
-      const [test, destination] = condition.split(":");
-      if (test.includes(">")) {
-        const [key, value] = test.split(">");
-        if (rating.get(key)! > parseInt(value)) {
-          ratingPositions.set(rating, destination);
-          i = 0;
-        } else {
-          i++;
-        }
-      }
-      if (test.includes("<")) {
-        const [key, value] = test.split("<");
-        if (rating.get(key)! < parseInt(value)) {
-          ratingPositions.set(rating, destination);
-          i = 0;
-        } else {
-          i++;
-        }
-      }
-    }
-    if (valid) {
+
+  for (const ratingString of ratings) {
+    const rating = parseRating(ratingString);
+    const accepted = runWorkflow(rating, "in", workflowsMap);
+    if (accepted) {
       sum += sumRating(rating);
     }
   }
@@ -114,8 +97,8 @@ const part2 = (input: string) => {
   return 0;
 };
 
-// testSolution("19114", part1, testFile);
-testSolution("167409079868000", part2, testFile);
+testSolution("19114", part1, testFile);
+// testSolution("476889", part1, inputFile);
 
-// console.log("Part 1:", part1(inputFile));
-// console.log("Part 2:", part2(inputFile));
+// testSolution("167409079868000", part2, testFile);
+// testSolution("?", part2, inputFile);
