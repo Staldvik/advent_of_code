@@ -3,7 +3,6 @@ import { getInputFile, getTestFile, testSolution } from "../utils";
 const testFile = getTestFile(__dirname);
 const inputFile = getInputFile(__dirname);
 
-// px{a<2006:qkq,m>2090:A,rfg}
 type Workflows = Map<string, string[]>;
 const parseWorkflows = (workflowLines: string[]): Workflows => {
   const workflows = new Map<string, string[]>();
@@ -78,27 +77,83 @@ const part1 = (input: string) => {
   return sum;
 };
 
-const part2 = (input: string) => {
-  const [workflows, ratings] = input.split("\n\n").map((l) => l.split("\n"));
-  const workflowsMap = parseWorkflows(workflows);
+const productOfRanges = (ranges: Range[]) => {
+  let product = 1;
+  for (const [min, max] of ranges) {
+    product *= max - min + 1;
+  }
+  return product;
+};
 
-  // For all conditions that can give `A` we need to
-  // - find all ratings that can give that condition
-  // - find all conditions that can give that workflow
+/** Inclusive on both ends */
+type Range = [number, number];
 
-  const aPositions = new Set<string>();
-  for (const [workflow, conditions] of workflowsMap) {
-    if (conditions.includes("A")) {
-      aPositions.add(workflow);
+const countRanges = (
+  ranges: Record<string, Range>,
+  workflowName: string,
+  workflows: Workflows
+) => {
+  if (workflowName === "R") return 0;
+  if (workflowName === "A") {
+    return productOfRanges(Object.values(ranges));
+  }
+
+  const workflow = workflows.get(workflowName)!;
+  const fallback = workflow.at(-1)!;
+
+  let sum = 0;
+
+  for (const conditions of workflow.slice(0, -1)) {
+    const [condition, target] = conditions.split(":");
+    const workflowName = condition[0];
+    const cmp = condition[1];
+    const [low, high] = ranges[workflowName];
+    const cmpNum = parseInt(condition.slice(2));
+
+    let passingRange: Range, failingRange: Range;
+
+    if (cmp == "<") {
+      passingRange = [low, Math.min(cmpNum - 1, high)];
+      failingRange = [Math.max(cmpNum, low), high];
+    } else {
+      passingRange = [Math.max(cmpNum + 1, low), high];
+      failingRange = [low, Math.min(cmpNum, high)];
+    }
+
+    if (passingRange[0] <= passingRange[1]) {
+      const copy = { ...ranges };
+      copy[workflowName] = passingRange;
+      sum += countRanges(copy, target, workflows);
+    }
+    if (failingRange[0] <= failingRange[1]) {
+      ranges = { ...ranges };
+      ranges[workflowName] = failingRange;
+    } else {
+      break;
     }
   }
-  console.log("🚀 ~ file: index.ts:107 ~ part2 ~ aPositions:", aPositions);
 
-  return 0;
+  sum += countRanges(ranges, fallback, workflows);
+
+  return sum;
+};
+
+const part2 = (input: string) => {
+  const [workflows] = input.split("\n\n").map((l) => l.split("\n"));
+  const workflowsMap = parseWorkflows(workflows);
+
+  const possibleRatings = {
+    x: [1, 4000],
+    m: [1, 4000],
+    a: [1, 4000],
+    s: [1, 4000],
+  } satisfies Record<string, Range>;
+
+  return countRanges(possibleRatings, "in", workflowsMap);
 };
 
 testSolution("19114", part1, testFile);
-// testSolution("476889", part1, inputFile);
+testSolution("476889", part1, inputFile);
 
-// testSolution("167409079868000", part2, testFile);
-// testSolution("?", part2, inputFile);
+testSolution("167409079868000", part2, testFile);
+testSolution("132380153677887", part2, inputFile);
