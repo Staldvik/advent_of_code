@@ -1,4 +1,10 @@
-import { getInputFile, getTestFile, readFile, testSolution } from "../utils";
+import {
+  findLCM,
+  getInputFile,
+  getTestFile,
+  readFile,
+  testSolution,
+} from "../utils";
 
 const testFile = getTestFile(__dirname);
 const testFile2 = readFile(__dirname)("./test2.txt");
@@ -31,23 +37,6 @@ const part1 = (input: string) => {
       instructions[steps % instructions.length] === "L" ? ifLeft : ifRight;
     steps += 1;
   }
-};
-
-const GCD = (a: number, b: number): number => {
-  while (b !== 0) {
-    let t = b;
-    b = a % b;
-    a = t;
-  }
-  return a;
-};
-
-const LCM = (a: number, b: number): number => {
-  return (a * b) / GCD(a, b);
-};
-
-const findLCM = (numbers: number[]): number => {
-  return numbers.reduce((a, b) => LCM(a, b));
 };
 
 const part2 = (input: string) => {

@@ -21,3 +21,20 @@ export const testSolution = (
     console.log("Test Success! Expected and got", result);
   }
 };
+
+const GCD = (a: number, b: number): number => {
+  while (b !== 0) {
+    let t = b;
+    b = a % b;
+    a = t;
+  }
+  return a;
+};
+
+const LCM = (a: number, b: number): number => {
+  return (a * b) / GCD(a, b);
+};
+
+export const findLCM = (numbers: number[]): number => {
+  return numbers.reduce((a, b) => LCM(a, b));
+};

@@ -1,4 +1,10 @@
-import { getInputFile, getTestFile, readFile, testSolution } from "../utils";
+import {
+  findLCM,
+  getInputFile,
+  getTestFile,
+  readFile,
+  testSolution,
+} from "../utils";
 
 const testFile = getTestFile(__dirname);
 const testFile2 = readFile(__dirname)("test2.txt");
@@ -62,7 +68,7 @@ class FlipFlop extends Node {
 }
 
 class Conjunction extends Node {
-  private inputValues = new Map<Node, Pulse>();
+  public inputValues = new Map<Node, Pulse>();
 
   public addInput(input: Node) {
     this.inputValues.set(input, "low");
@@ -163,10 +169,88 @@ const part1 = (input: string) => {
   return counter.low * counter.high;
 };
 
-const part2 = (input: string) => {};
+const part2 = (input: string) => {
+  orchestrator = new Orchestrator();
+  const lines = input.split("\n").map((line) => line.split(" -> "));
+  const nodes = new Map<string, Node>();
+
+  for (const [name] of lines) {
+    const nodeName = getName(name);
+    nodes.set(nodeName, parse(name));
+  }
+
+  for (const [name, listeners] of lines) {
+    const node = nodes.get(getName(name))!;
+
+    for (const listener of listeners.split(", ")) {
+      const listenerName = getName(listener);
+      if (!nodes.has(listenerName)) {
+        nodes.set(listenerName, parse(listener));
+      }
+      const listenerNode = nodes.get(listenerName)!;
+      if (listenerNode instanceof Conjunction) {
+        listenerNode.addInput(node);
+      }
+      node.addListener(listenerNode);
+    }
+  }
+
+  const broadcaster = nodes.get("broadcaster")!;
+
+  let buttonHits = 0;
+
+  const hitButton = () => {
+    buttonHits++;
+    counter.count("low");
+    broadcaster.receive("low");
+  };
+
+  const rx = nodes.get("rx")!;
+  let nodeBroadcastingToRx: Conjunction | undefined;
+  for (const node of nodes.values()) {
+    if (node.listeners.includes(rx)) {
+      if (nodeBroadcastingToRx)
+        throw new Error("More than one node broadcasting to rx");
+      if (!(node instanceof Conjunction)) {
+        throw new Error("Expected a conjunction broadcasting to rx");
+      }
+      nodeBroadcastingToRx = node;
+    }
+  }
+  if (!nodeBroadcastingToRx)
+    throw new Error("No node broadcasting to rx found");
+
+  const cycles = new Map<Node, number>();
+
+  const BUTTON_HITS = 50_000;
+  while (buttonHits < BUTTON_HITS) {
+    hitButton();
+
+    let event = orchestrator.tick();
+    while (event) {
+      counter.count(event.pulse);
+
+      if (
+        nodeBroadcastingToRx.inputValues.has(event.sender) &&
+        event.pulse === "high"
+      ) {
+        if (!cycles.has(event.sender)) {
+          cycles.set(event.sender, buttonHits);
+        }
+      }
+
+      if (cycles.size === nodeBroadcastingToRx.inputValues.size) break;
+
+      event.target.receive(event.pulse, event.sender);
+      event = orchestrator.tick();
+    }
+  }
+
+  return findLCM(Array.from(cycles.values()));
+};
 
 testSolution("32000000", part1, testFile);
 testSolution("11687500", part1, testFile2);
 
 testSolution("1020211150", part1, inputFile);
-// console.log("Part 2:", part2(inputFile));
+testSolution("238815727638557", part2, inputFile);
