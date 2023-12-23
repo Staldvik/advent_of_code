@@ -4,12 +4,30 @@ const testFile = getTestFile(__dirname);
 const inputFile = getInputFile(__dirname);
 
 class Grid {
-  constructor(public lines: string[]) {}
+  cells: string[][] = [];
+  rocks: Rock[] = [];
+  constructor(input: string) {
+    this.cells = input.split("\n").map((line) => line.split(""));
+
+    for (let y = 0; y < this.cells.length; y++) {
+      const line = this.cells[y];
+      for (let x = 0; x < line.length; x++) {
+        const char = line[x];
+        if (char === "O") {
+          this.rocks.push(new Rock(x, y));
+        }
+      }
+    }
+  }
 
   get(x: number, y: number): string | false {
-    if (y < 0 || y >= this.lines.length) return false;
-    if (x < 0 || x >= this.lines[y].length) return false;
-    return this.lines[y][x];
+    if (y < 0 || y >= this.cells.length) return false;
+    if (x < 0 || x >= this.cells[y].length) return false;
+    return this.cells[y][x];
+  }
+
+  set(x: number, y: number, value: string) {
+    this.cells[y][x] = value;
   }
 }
 
@@ -20,22 +38,10 @@ class Rock {
 type Direction = "north" | "east" | "south" | "west";
 
 const part1 = (input: string, tiltDirection: Direction = "north") => {
-  const lines = input.split("\n");
-  const grid = new Grid(lines);
-
-  const rocks: Rock[] = [];
-  for (let y = 0; y < lines.length; y++) {
-    const line = lines[y];
-    for (let x = 0; x < line.length; x++) {
-      const char = line[x];
-      if (char === "O") {
-        rocks.push(new Rock(x, y));
-      }
-    }
-  }
+  const grid = new Grid(input);
 
   // Sort rocks by distance to the tilt edge
-  rocks.sort((a, b) => {
+  grid.rocks.sort((a, b) => {
     switch (tiltDirection) {
       case "north":
         return a.y - b.y;
@@ -56,7 +62,7 @@ const part1 = (input: string, tiltDirection: Direction = "north") => {
   };
 
   let sum = 0;
-  for (const rock of rocks) {
+  for (const rock of grid.rocks) {
     let nextChar = grid.get(
       rock.x + dir[tiltDirection].x,
       rock.y + dir[tiltDirection].y
@@ -64,7 +70,7 @@ const part1 = (input: string, tiltDirection: Direction = "north") => {
     while (
       nextChar &&
       nextChar !== "#" &&
-      !rocks.some(
+      !grid.rocks.some(
         (r) =>
           r.x === rock.x + dir[tiltDirection].x &&
           r.y === rock.y + dir[tiltDirection].y
@@ -82,7 +88,7 @@ const part1 = (input: string, tiltDirection: Direction = "north") => {
     // Settled
     switch (tiltDirection) {
       case "north":
-        sum += lines.length - rock.y;
+        sum += grid.cells.length - rock.y;
         break;
       case "south":
         sum += rock.y + 1;
@@ -91,7 +97,7 @@ const part1 = (input: string, tiltDirection: Direction = "north") => {
         sum += rock.x + 1;
         break;
       case "west":
-        sum += lines[0].length - rock.x;
+        sum += grid.cells[0].length - rock.x;
         break;
     }
   }
@@ -102,7 +108,7 @@ const part1 = (input: string, tiltDirection: Direction = "north") => {
 const part2 = (input: string) => {};
 
 testSolution("136", part1, testFile);
-// testSolution("51", part2, testFile);
+testSolution("64", part2, testFile);
 
 console.log("Part 1:", part1(inputFile));
 // console.log("Part 2:", part2(inputFile));
