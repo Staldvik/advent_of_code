@@ -31,21 +31,16 @@ class Grid {
   }
 
   getRockState() {
-    return (
-      this.rocks
-        // .toSorted((a, b) => {
-        //   const yDiff = a.y - b.y;
-        //   if (yDiff !== 0) return yDiff;
-        //   return a.x - b.x;
-        // })
-        .map((rock) => `(${rock.x},${rock.y})`)
-        .join()
-    );
+    return this.rocks.map((rock) => `(${rock.x},${rock.y})`).join();
+  }
+
+  toString() {
+    return this.cells.map((row) => row.join("")).join("\n");
   }
 
   print() {
     console.log();
-    console.log(this.cells.map((row) => row.join("")).join("\n"));
+    console.log(this.toString());
   }
 }
 
@@ -121,7 +116,7 @@ const part1 = (input: string) => {
 const directions: Direction[] = ["north", "west", "south", "east"];
 
 const findCycle = (grid: Grid) => {
-  const seenStates = new Set<string>();
+  const seenStates: string[] = [];
   let cycle = 0;
 
   while (true) {
@@ -130,21 +125,23 @@ const findCycle = (grid: Grid) => {
     }
     cycle++;
 
-    const state = grid.getRockState();
-    if (seenStates.has(state)) {
-      console.log("🚀 ~ file: index.ts:144 ~ findCycle ~ state:", state);
-      return cycle;
+    const state = grid.toString();
+    if (seenStates.indexOf(state) !== -1) {
+      return { cycleStart: seenStates.indexOf(state) + 1, cycle };
     }
-    seenStates.add(state);
+    seenStates.push(state);
   }
 };
 
 const part2 = (input: string) => {
   const grid = new Grid(input);
-  const cycle = findCycle(grid);
-  console.log("🚀 ~ file: index.ts:142 ~ part2 ~ cycle:", cycle);
+  const { cycleStart, cycle } = findCycle(grid);
 
-  for (let i = 0; i < 1_000_000_000 % cycle; i++) {
+  for (
+    let i = 0;
+    i < (1_000_000_000 - cycleStart) % (cycle - cycleStart);
+    i++
+  ) {
     for (const direction of directions) {
       tiltGrid(grid, direction);
     }
@@ -161,4 +158,4 @@ testSolution("136", part1, testFile);
 testSolution("64", part2, testFile);
 
 console.log("Part 1:", part1(inputFile));
-// console.log("Part 2:", part2(inputFile));
+console.log("Part 2:", part2(inputFile));
