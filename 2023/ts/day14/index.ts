@@ -14,7 +14,6 @@ class Grid {
       for (let x = 0; x < line.length; x++) {
         const char = line[x];
         if (char === "O") {
-          this.cells[y][x] = ".";
           this.rocks.push(new Rock(x, y));
         }
       }
@@ -32,45 +31,39 @@ class Grid {
   }
 
   getRockState() {
-    return this.rocks
-      .toSorted((a, b) => a.id - b.id)
-      .map((rock) => rock.toString())
-      .join();
+    return (
+      this.rocks
+        // .toSorted((a, b) => {
+        //   const yDiff = a.y - b.y;
+        //   if (yDiff !== 0) return yDiff;
+        //   return a.x - b.x;
+        // })
+        .map((rock) => `(${rock.x},${rock.y})`)
+        .join()
+    );
   }
 
   print() {
-    console.log(
-      this.cells
-        .map((row, y) =>
-          row
-            .map((cell, x) => {
-              const rock = this.rocks.find((r) => r.x === x && r.y === y);
-              if (rock) return "O";
-              return cell;
-            })
-            .join("")
-        )
-        .join("\n")
-    );
+    console.log();
+    console.log(this.cells.map((row) => row.join("")).join("\n"));
   }
 }
 
-let rockId = 0;
 class Rock {
-  id: number;
-  constructor(public x: number, public y: number) {
-    this.id = rockId++;
-  }
-  toString() {
-    return `#${this.id}(${this.x},${this.y})`;
-  }
+  constructor(public x: number, public y: number) {}
 }
 
 type Direction = "north" | "east" | "south" | "west";
 
+const dir = {
+  north: { x: 0, y: -1 },
+  east: { x: 1, y: 0 },
+  south: { x: 0, y: 1 },
+  west: { x: -1, y: 0 },
+};
+
 const tiltGrid = (grid: Grid, tiltDirection: Direction = "north") => {
-  // Sort rocks by distance to the tilt edge
-  grid.rocks.sort((a, b) => {
+  const order = grid.rocks.toSorted((a, b) => {
     switch (tiltDirection) {
       case "north":
         return a.y - b.y;
@@ -83,35 +76,33 @@ const tiltGrid = (grid: Grid, tiltDirection: Direction = "north") => {
     }
   });
 
-  const dir = {
-    north: { x: 0, y: -1 },
-    east: { x: 1, y: 0 },
-    south: { x: 0, y: 1 },
-    west: { x: -1, y: 0 },
+  const checkDirection = (
+    direction: Direction,
+    fromX: number,
+    fromY: number,
+    offset: number
+  ): false | number => {
+    const cell = grid.get(
+      fromX + dir[direction].x * offset,
+      fromY + dir[direction].y * offset
+    );
+    if (["#", "O", false].includes(cell)) {
+      return false;
+    }
+
+    const result = checkDirection(direction, fromX, fromY, offset + 1);
+    if (result === false) return offset;
+    return result;
   };
 
-  for (const rock of grid.rocks) {
-    let nextChar = grid.get(
-      rock.x + dir[tiltDirection].x,
-      rock.y + dir[tiltDirection].y
-    );
-    while (
-      nextChar &&
-      nextChar !== "#" &&
-      !grid.rocks.some(
-        (r) =>
-          r.x === rock.x + dir[tiltDirection].x &&
-          r.y === rock.y + dir[tiltDirection].y
-      )
-    ) {
-      rock.x += dir[tiltDirection].x;
-      rock.y += dir[tiltDirection].y;
-
-      nextChar = grid.get(
-        rock.x + dir[tiltDirection].x,
-        rock.y + dir[tiltDirection].y
-      );
-    }
+  for (const rock of order) {
+    const { x, y } = rock;
+    const offset = checkDirection(tiltDirection, x, y, 1);
+    if (offset === false) continue;
+    rock.x += dir[tiltDirection].x * offset;
+    rock.y += dir[tiltDirection].y * offset;
+    grid.set(rock.x, rock.y, "O");
+    grid.set(x, y, ".");
   }
 };
 
@@ -141,6 +132,7 @@ const findCycle = (grid: Grid) => {
 
     const state = grid.getRockState();
     if (seenStates.has(state)) {
+      console.log("🚀 ~ file: index.ts:144 ~ findCycle ~ state:", state);
       return cycle;
     }
     seenStates.add(state);
@@ -148,12 +140,11 @@ const findCycle = (grid: Grid) => {
 };
 
 const part2 = (input: string) => {
-  let grid = new Grid(input);
+  const grid = new Grid(input);
   const cycle = findCycle(grid);
-  console.log("🚀 ~ file: index.ts:153 ~ part2 ~ cycle:", cycle);
-  grid = new Grid(input);
+  console.log("🚀 ~ file: index.ts:142 ~ part2 ~ cycle:", cycle);
 
-  for (let i = 0; i <= 1_000_000_000 % cycle; i++) {
+  for (let i = 0; i < 1_000_000_000 % cycle; i++) {
     for (const direction of directions) {
       tiltGrid(grid, direction);
     }
@@ -170,4 +161,4 @@ testSolution("136", part1, testFile);
 testSolution("64", part2, testFile);
 
 console.log("Part 1:", part1(inputFile));
-console.log("Part 2:", part2(inputFile));
+// console.log("Part 2:", part2(inputFile));
