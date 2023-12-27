@@ -1,175 +1,89 @@
+import Deque from "double-ended-queue";
 import { getInputFile, getTestFile, readFile, testSolution } from "../utils";
 
 const testFile = getTestFile(__dirname);
 const testFile2 = readFile(__dirname)("./test2.txt");
 const inputFile = getInputFile(__dirname);
 
-type Pos = {
-  x: number;
-  y: number;
-};
+type Pos = { x: number; y: number };
 
-const findStart = (pipes: string[][]): Pos => {
-  for (let rowI = 0; rowI < pipes.length; rowI++) {
-    const column = pipes[rowI];
-    for (let cellI = 0; cellI < column.length; cellI++) {
-      const cell = column[cellI];
-      if (cell === "S") return { x: cellI, y: rowI };
-    }
-  }
-
-  throw new Error(`Couldn't find start ${pipes}`);
-};
-
-const isSamePos = (a: Pos, b: Pos) => a.x === b.x && a.y === b.y;
-const oppositeDir = (dir: Pos) => ({ x: -dir.x, y: -dir.y });
-
-const dirs: Pos[] = [
-  { x: 0, y: -1 },
-  { x: 0, y: 1 },
-  { x: 1, y: 0 },
-  { x: -1, y: 0 },
-];
-
-const pipeChars = ["|", "-", "L", "J", "7", "F"];
-const validNextPipe = (pipe: string, fromPipe: string, fromDir: Pos) => {
-  if (!pipe || pipe === ".") return false;
-  switch (pipe) {
-    case "|": {
-      if (fromPipe === "-") return false;
-      if (fromDir.x === 1 || fromDir.x === -1) return false;
-      if (["L", "J"].includes(fromPipe)) return fromDir.y === 1;
-      if (["7", "F"].includes(fromPipe)) return fromDir.y === -1;
-      return true;
-    }
-    case "-": {
-      if (fromPipe === "|") return false;
-      if (fromDir.y === 1 || fromDir.y === -1) return false;
-      if (["7", "J"].includes(fromPipe)) return fromDir.x === 1;
-      if (["F", "L"].includes(fromPipe)) return fromDir.x === -1;
-      return true;
-    }
-    case "L": {
-      if (fromDir.y === 1) return false;
-      if (fromDir.x === -1) return false;
-      if (fromPipe === "-") return fromDir.x === 1;
-      if (fromPipe === "|") return fromDir.y === -1;
-      if (fromPipe === "F") return fromDir.y === -1;
-      if (fromPipe === "7") return fromDir.x === 1 || fromDir.y === -1;
-      if (fromPipe === "J") return fromDir.x === 1;
-      if (fromPipe === "L") return false;
-      return true;
-    }
-    case "J": {
-      if (fromDir.y === 1) return false;
-      if (fromDir.x === 1) return false;
-      if (fromPipe === "-") return fromDir.x === -1;
-      if (fromPipe === "|") return fromDir.y === -1;
-      if (fromPipe === "F") return fromDir.y === -1 || fromDir.x === -1;
-      if (fromPipe === "7") return fromDir.y === -1;
-      if (fromPipe === "J") return false;
-      if (fromPipe === "L") return fromDir.x === -1;
-      return true;
-    }
-    case "7": {
-      if (fromDir.y === -1) return false;
-      if (fromDir.x === 1) return false;
-      if (fromPipe === "-") return fromDir.x === -1;
-      if (fromPipe === "|") return fromDir.y === 1;
-      if (fromPipe === "F") return fromDir.x === -1;
-      if (fromPipe === "7") return false;
-      if (fromPipe === "J") return fromDir.y === 1;
-      if (fromPipe === "L") return fromDir.y === 1 || fromDir.x === -1;
-      return true;
-    }
-    case "F": {
-      if (fromDir.y === -1) return false;
-      if (fromDir.x === -1) return false;
-      if (fromPipe === "-") return fromDir.x === 1;
-      if (fromPipe === "|") return fromDir.y === 1;
-      if (fromPipe === "F") return false;
-      if (fromPipe === "7") return fromDir.x === 1;
-      if (fromPipe === "J") return fromDir.y === 1 || fromDir.x === 1;
-      if (fromPipe === "L") return fromDir.y === 1;
-      return true;
-    }
-    case "S":
-      return true;
-  }
-  return false;
-};
-
-const getCharAtPos = (pipes: string[][], pos: Pos) => {
-  return pipes[pos.y]?.[pos.x];
-};
-
-type Node = {
-  pipe: string;
-  pos: Pos;
-  next: Node | null;
-  prev: Node | null;
-};
-
-const getDir = ({ x, y }: Pos) => {
-  if (y === -1) return "⬆️";
-  if (y === 1) return "⬇️";
-  if (x === 1) return "➡️";
-  if (x === -1) return "⬅️";
-};
-
-const buildLinkedList = (input: string) => {
-  const pipes = input.split("\n").map((line) => line.split(""));
-  const start = findStart(pipes);
-  const startNode: Node = { pipe: "S", pos: start, next: null, prev: null };
-  let currNode: Node = startNode;
-  const route: Node[] = [];
-  while (true) {
-    for (const dir of dirs) {
-      const nextPos = {
-        x: currNode.pos.x + dir.x,
-        y: currNode.pos.y + dir.y,
-      };
-      if (currNode.prev?.pos && isSamePos(currNode.prev.pos, nextPos)) {
-        continue;
-      }
-      const nextPipe = getCharAtPos(pipes, nextPos);
-
-      if (validNextPipe(nextPipe, currNode.pipe, oppositeDir(dir))) {
-        console.log(currNode.pipe, getDir(dir), nextPipe);
-
-        const nextNode = {
-          prev: currNode,
-          next: null,
-          pipe: nextPipe,
-          pos: nextPos,
-        };
-        currNode.next = nextNode;
-        currNode = nextNode;
+const findStart = (grid: string[][]): Pos => {
+  for (let y = 0; y < grid.length; y++) {
+    const line = grid[y];
+    for (let x = 0; x < line.length; x++) {
+      const char = line[x];
+      if (char === "S") {
+        return { x, y };
       }
     }
-    route.push(currNode);
-
-    if (currNode.pipe === "S") break;
   }
+  throw new Error("No start found");
+};
 
-  return startNode;
+const notSeen = (pos: Pos, seen: Pos[]) => {
+  return !seen.some((p) => p.x === pos.x && p.y === pos.y);
 };
 
 const part1 = (input: string) => {
-  const linkedListStart = buildLinkedList(input);
-  let steps = 1;
-  let curr = linkedListStart.next;
-  while (curr?.pipe !== "S") {
-    steps += 1;
-    curr = curr?.next!;
+  const grid = input.split("\n").map((line) => line.split(""));
+  const start = findStart(grid);
+
+  const seen: Pos[] = [start];
+  const queue = new Deque<Pos>();
+  queue.enqueue(start);
+
+  while (queue.length) {
+    const currPos = queue.shift()!;
+    const currChar = grid[currPos.y][currPos.x];
+
+    // Check up
+    if (currPos.y > 0 && "SL|J".includes(currChar)) {
+      const upPos = { x: currPos.x, y: currPos.y - 1 };
+      const upChar = grid[upPos.y][upPos.x];
+      if ("F|7".includes(upChar) && notSeen(upPos, seen)) {
+        seen.push(upPos);
+        queue.enqueue(upPos);
+      }
+    }
+
+    // Check right
+    if (currPos.x < grid[0].length - 1 && "S-FL".includes(currChar)) {
+      const rightPos = { x: currPos.x + 1, y: currPos.y };
+      const rightChar = grid[rightPos.y][rightPos.x];
+      if ("-J7".includes(rightChar) && notSeen(rightPos, seen)) {
+        seen.push(rightPos);
+        queue.enqueue(rightPos);
+      }
+    }
+
+    // Check down
+    if (currPos.y < grid.length - 1 && "SF|7".includes(currChar)) {
+      const downPos = { x: currPos.x, y: currPos.y + 1 };
+      const downChar = grid[downPos.y][downPos.x];
+      if ("L|J".includes(downChar) && notSeen(downPos, seen)) {
+        seen.push(downPos);
+        queue.enqueue(downPos);
+      }
+    }
+
+    // Check left
+    if (currPos.x > 0 && "S-J7".includes(currChar)) {
+      const leftPos = { x: currPos.x - 1, y: currPos.y };
+      const leftChar = grid[leftPos.y][leftPos.x];
+      if ("-FL".includes(leftChar) && notSeen(leftPos, seen)) {
+        seen.push(leftPos);
+        queue.enqueue(leftPos);
+      }
+    }
   }
-  return steps / 2;
+
+  return seen.length / 2;
 };
 
 const part2 = (input: string) => {};
 
-// testSolution("4", part1, testFile);
+testSolution("4", part1, testFile);
 testSolution("8", part1, testFile2);
 
-console.log("Part 1:", part1(inputFile));
+// console.log("Part 1:", part1(inputFile));
 // console.log("Part 2:", part2(inputFile));
