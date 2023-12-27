@@ -3,102 +3,70 @@ import { getInputFile, getTestFile, testSolution } from "../utils";
 const testFile = getTestFile(__dirname);
 const inputFile = getInputFile(__dirname);
 
-function generateCombinations(
-  str: string,
-  n: number,
-  result: string[] = [],
-  combinations: string[][] = []
-): string[][] {
-  if (n === 1) {
-    result.push(str);
-    combinations.push([...result]);
-    result.pop();
-  } else {
-    for (let i = 1; i < str.length; i++) {
-      result.push(str.substring(0, i));
-      generateCombinations(str.substring(i), n - 1, result, combinations);
-      result.pop();
+const seen: Record<string, number> = {};
+
+const count = (str: string, nums: number[]) => {
+  if (str === "") {
+    if (nums.length === 0) return 1;
+    return 0;
+  }
+
+  if (nums.length === 0) {
+    if (str.includes("#")) return 0;
+    return 1;
+  }
+
+  const key = `${str}:${nums}`;
+  if (seen[key]) seen[key];
+  let result = 0;
+
+  if (".?".includes(str[0])) {
+    result += count(str.slice(1), nums);
+  }
+
+  if ("#?".includes(str[0])) {
+    const enoughSpringsLeft = nums[0] <= str.length;
+    const allSpringsBroken = !str.slice(0, nums[0]).includes(".");
+    const nextSpringOperational =
+      nums[0] === str.length || str[nums[0]] !== "#";
+    if (enoughSpringsLeft && allSpringsBroken && nextSpringOperational) {
+      result += count(str.slice(nums[0] + 1), nums.slice(1));
     }
   }
-  return combinations;
-}
 
-function generateCombinations2(str: string): string[] {
-  const combinations = [];
-  if (str.includes("?")) {
-    const index = str.indexOf("?");
-    const replacedWithDot = str.slice(0, index) + "." + str.slice(index + 1);
-    const replacedWithHash = str.slice(0, index) + "#" + str.slice(index + 1);
-    combinations.push(
-      ...generateCombinations2(replacedWithDot),
-      ...generateCombinations2(replacedWithHash)
-    );
-  } else {
-    combinations.push(str);
-  }
-  return combinations;
-}
-
-function filterCombinations(
-  combinations: string[],
-  counts: number[]
-): string[] {
-  return combinations.flatMap((combination) => {
-    console.log(
-      "🚀 ~ file: index.ts:56 ~ returncombinations.filter ~ combination:",
-      combination
-    );
-
-    const hashGroups = combination
-      .split(".")
-      .filter((part) => part.includes("#"));
-
-    if (!hashGroups.length) return [];
-    if (hashGroups.every((group, index) => group.length === counts[index]))
-      return [combination];
-  });
-}
+  seen[key] = result;
+  return result;
+};
 
 const part1 = (input: string) => {
   const lines = input.split("\n");
 
   let sum = 0;
-  for (const line of lines.slice(0, 1)) {
-    console.log("🚀 ~ file: index.ts:63 ~ part1 ~ line:", line);
-    const [springLine, recordLine] = line.split(" ");
+  for (const line of lines) {
+    const [str, nums] = line.split(" ");
+    const numArr = nums.split(",").map(Number);
+    sum += count(str, numArr);
+  }
 
-    const springBlocks = springLine.split(".").filter(Boolean);
-    const brokenBlocks = recordLine.split(",").map(Number);
+  return sum;
+};
 
-    const result = generateCombinations(
-      springBlocks.join(""),
-      brokenBlocks.length
-    )
-      .filter((c) => {
-        for (let i = 0; i < brokenBlocks.length; i++) {
-          const blockLength = brokenBlocks[i];
-          if (c[i].length < blockLength) return false;
-        }
-        return true;
-      })
-      .map((c) => {
-        const allCombinations = c.map((c1) => generateCombinations2(c1));
-        const validCombinations = allCombinations.map((combinations, index) => {
-          return filterCombinations(combinations, [brokenBlocks[index]]);
-        });
+const part2 = (input: string) => {
+  const lines = input.split("\n");
 
-        return validCombinations;
-      });
-    console.log("🚀 ~ file: index.ts:88 ~ part1 ~ result:", result);
-
-    sum += 1;
+  let sum = 0;
+  for (const line of lines) {
+    const [str, nums] = line.split(" ");
+    const newStr = Array(5).fill(str).join("?");
+    const numArr = Array(5).fill(nums.split(",").map(Number)).flat();
+    sum += count(newStr, numArr);
   }
 
   return sum;
 };
 
 testSolution("21", part1, testFile);
-// testSolution("21", part2, testFile);
+testSolution("525152", part2, testFile);
 
-// console.log("Part 1:", solve(1)(inputFile));
-// console.log("Part 2:", solve(1_000_000)(inputFile));
+testSolution("7025", part1, inputFile);
+testSolution("?", part2, inputFile);
