@@ -3,16 +3,10 @@ use std::fs;
 type Forest = Vec<Vec<usize>>;
 
 fn parse(input: &String) -> Forest {
-    let forest: Forest = input
+    return input
         .lines()
-        .map(|x| {
-            x.split("")
-                .filter_map(|x| x.parse::<usize>().ok())
-                .collect::<Vec<usize>>()
-        })
+        .map(|x| x.split("").filter_map(|x| x.parse().ok()).collect())
         .collect();
-
-    return forest;
 }
 
 fn visible_horizontally(forest: &Forest, (x, y): (usize, usize)) -> bool {
@@ -71,7 +65,7 @@ fn task1(input: &String) {
 fn task2(input: &String) {}
 
 fn main() {
-    let ex_input = fs::read_to_string("src/bin/day8/input.txt").unwrap();
+    let ex_input = fs::read_to_string("src/bin/day8/ex.txt").unwrap();
     // let input = fs::read_to_string("src/input.txt").unwrap();
     task1(&ex_input);
     // task1(&input);
