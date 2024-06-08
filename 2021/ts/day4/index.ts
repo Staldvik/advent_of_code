@@ -82,7 +82,7 @@ const part2 = (input: string) => {
 };
 
 testSolution("4512", part1, testFile);
-testSolution("4001724", part1, inputFile);
+testSolution("5685", part1, inputFile);
 
 testSolution("1924", part2, testFile);
-testSolution("587895", part2, inputFile);
+testSolution("21070", part2, inputFile);
