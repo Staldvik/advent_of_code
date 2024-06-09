@@ -1,3 +1,4 @@
+import { clearLine } from "readline";
 import { getInputFile, getTestFile, testSolution } from "../utils";
 
 const testFile = getTestFile(__dirname);
@@ -58,45 +59,21 @@ const part2 = (input: string) => {
   const seen = new Map<string, number>();
 
   lines.forEach((line) => {
-    const isVertical = line[0][0] === line[1][0];
-    const isHorizontal = line[0][1] === line[1][1];
-    const isDiagonal =
-      Math.abs(line[0][0] - line[1][0]) === Math.abs(line[0][1] - line[1][1]);
+    let x = startX(line);
+    let y = startY(line);
+    while (x !== endX(line) || y !== endY(line)) {
+      const xy = `${x}.${y}`;
+      seen.set(xy, (seen.get(xy) ?? 0) + 1);
 
-    if (isVertical) {
-      const x = line[0][0];
-      const startY = Math.min(line[0][1], line[1][1]);
-      const endY = Math.max(line[0][1], line[1][1]);
-      for (let y = startY; y <= endY; y++) {
-        const xy = `${x}.${y}`;
-        seen.set(xy, (seen.get(xy) ?? 0) + 1);
-      }
+      if (startX(line) < endX(line)) x++;
+      else if (startX(line) > endX(line)) x--;
+
+      if (startY(line) < endY(line)) y++;
+      else if (startY(line) > endY(line)) y--;
     }
 
-    if (isHorizontal) {
-      const y = line[0][1];
-      const startX = Math.min(line[0][0], line[1][0]);
-      const endX = Math.max(line[0][0], line[1][0]);
-      for (let x = startX; x <= endX; x++) {
-        const xy = `${x}.${y}`;
-        seen.set(xy, (seen.get(xy) ?? 0) + 1);
-      }
-    }
-
-    if (isDiagonal) {
-      let x = startX(line);
-      let y = startY(line);
-      while (x !== endX(line) && y !== endY(line)) {
-        const xy = `${x}.${y}`;
-        seen.set(xy, (seen.get(xy) ?? 0) + 1);
-
-        if (startX(line) < endX(line)) x++;
-        else x--;
-
-        if (startY(line) < endY(line)) y++;
-        else y--;
-      }
-    }
+    const xy = `${x}.${y}`;
+    seen.set(xy, (seen.get(xy) ?? 0) + 1);
   });
 
   let sum = 0;
