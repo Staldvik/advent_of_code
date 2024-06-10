@@ -8,8 +8,8 @@ const part1 = (input: string) => {};
 
 const part2 = (input: string) => {};
 
-testSolution("5", part1, testFile);
-// testSolution("6548", part1, inputFile);
+testSolution("?", part1, testFile);
+// testSolution("?", part1, inputFile);
 
-// testSolution("12", part2, testFile);
-// testSolution("19663", part2, inputFile); // 19633 = Too low
+// testSolution("?", part2, testFile);
+// testSolution("?", part2, inputFile);
