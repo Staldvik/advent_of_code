@@ -88,4 +88,4 @@ testSolution("5", part1, testFile);
 testSolution("6548", part1, inputFile);
 
 testSolution("12", part2, testFile);
-testSolution("?", part2, inputFile); // 19633 = Too low
+testSolution("19663", part2, inputFile); // 19633 = Too low
