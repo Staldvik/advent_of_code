@@ -49,12 +49,6 @@ class Graph {
 
 const part1 = (input: string) => {
   const graph = Graph.fromString(input);
-  for (const node of graph.nodes) {
-    console.log(
-      node.character,
-      node.edges.map((e) => e.character)
-    );
-  }
 
   const paths: Node[][] = [];
   visit(paths, [], graph.start, false);
@@ -63,12 +57,6 @@ const part1 = (input: string) => {
 
 const part2 = (input: string) => {
   const graph = Graph.fromString(input);
-  for (const node of graph.nodes) {
-    console.log(
-      node.character,
-      node.edges.map((e) => e.character)
-    );
-  }
 
   const paths: Node[][] = [];
   visit(paths, [], graph.start, true);
