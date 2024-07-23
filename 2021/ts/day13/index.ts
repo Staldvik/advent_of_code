@@ -4,10 +4,7 @@ const testFile = getTestFile(__dirname);
 const inputFile = getInputFile(__dirname);
 
 type Paper = boolean[][];
-type Fold = {
-  line: number;
-  type: "up" | "left";
-};
+type Fold = (paper: Paper) => Paper;
 
 const createPaper = (dots: string[]): Paper => {
   let maxX = 0;
@@ -34,7 +31,7 @@ const createPaper = (dots: string[]): Paper => {
 
 const printPaper = (paper: Paper) => {
   console.log(
-    paper.map((l) => l.map((b) => (b ? "#" : ".")).join("")).join("\n")
+    paper.map((l) => l.map((b) => (b ? "#" : " ")).join("")).join("\n")
   );
 };
 
@@ -46,63 +43,26 @@ const countDots = (paper: Paper) => {
   return sum;
 };
 
-const part1 = (input: string) => {
-  const [dots, foldLines] = input.split("\n\n").map((l) => l.split("\n"));
-  const folds = foldLines.map((l): Fold => {
+const createFolds = (foldLines: string[]) => {
+  return foldLines.map((l): Fold => {
     const line = l.split(" ").at(-1)!;
     const [dir, num] = line.split("=");
-    return {
-      line: Number(num),
-      type: dir === "y" ? "up" : "left",
-    };
+    if (dir === "y") return (paper: Paper) => foldUp(paper, Number(num));
+    if (dir === "x") return (paper: Paper) => foldLeft(paper, Number(num));
+    throw new Error(`Unknown dir: ${dir}`);
   });
-
-  let paper = createPaper(dots);
-  printPaper(paper);
-  console.log("");
-  for (const fold of folds.slice(0, 2)) {
-    const foldOperation = fold.type === "up" ? foldUp : foldLeft;
-    paper = foldOperation(paper, fold.line);
-    printPaper(paper);
-  }
-
-  return countDots(paper);
 };
 
 const foldUp = (paper: Paper, foldLine: number) => {
   const result: Paper = [];
+  const line = Math.floor(Math.abs(paper.length / 2 - foldLine));
+  console.log("🚀 ~ foldUp ~ line:", line);
 
-  const halfWay = paper.length / 2;
-  console.log("🚀 ~ foldUp ~ halfWay:", halfWay);
-  console.log("🚀 ~ foldUp ~ foldLine:", foldLine);
-
-  // Bottom of fold will become new top
-  if (foldLine <= halfWay) {
-    const mergeLineBottom = foldLine * 2;
-
-    for (let y = paper.length - 1; y > foldLine; y--) {
-      const row = paper[y];
-      if (y > mergeLineBottom) {
-        result.push(row.slice());
-      } else {
-        const dist = Math.abs(y - foldLine);
-        const oppositeRow = paper[foldLine - dist];
-        result.push(mergeHorizontalLine(row, oppositeRow));
-      }
-    }
-  } else {
-    console.log("HIT");
-
-    const mergelineTop = foldLine - (paper.length - foldLine);
-    for (let y = 0; y < foldLine; y++) {
-      const row = paper[y];
-      if (y < mergelineTop) {
-        result.push(row.slice());
-      } else {
-        const dist = Math.abs(y - foldLine);
-        const oppositeRow = paper[foldLine + dist - 1];
-        result.push(mergeHorizontalLine(row, oppositeRow));
-      }
+  for (let y = 0; y < foldLine; y++) {
+    if (y < line) {
+      result.push(paper[y].slice());
+    } else {
+      result.push(mergeHorizontalLine(paper[y], paper[paper.length - 1 - y]));
     }
   }
 
@@ -112,35 +72,14 @@ const foldUp = (paper: Paper, foldLine: number) => {
 const foldLeft = (paper: Paper, foldLine: number): Paper => {
   const result: Paper = [];
 
-  const halfWay = paper[0].length / 2;
-  console.log("🚀 ~ foldLeft ~ halfWay:", halfWay);
-  const mergeLength = Math.min(Math.abs(foldLine - paper[0].length), foldLine);
-  const mergelineLeft = foldLine - mergeLength;
-
   for (let y = 0; y < paper.length; y++) {
-    if (!result[y]?.length) result[y] = [];
-    if (foldLine <= halfWay) {
-      const overshoot = Math.ceil(halfWay) - foldLine - 1;
-      for (let x = 0; x < foldLine; x++) {
-        if (x === foldLine) continue;
-        const oppositeElement = paper[y].at(-1 - x)!;
-        if (x < overshoot) {
-          result[y][x] = oppositeElement;
-        } else {
-          result[y][x] = paper[y][x] || oppositeElement;
-        }
+    if (!result[y]) result[y] = [];
+    for (let x = 0; x < foldLine; x++) {
+      const oppositeElement = paper[y][paper[y].length - 1 - x];
+      if (oppositeElement === undefined) {
+        throw new Error(`Couldn't find opposite element to ${x},${y}`);
       }
-    } else {
-      console.log("HIT");
-      for (let x = 0; x < foldLine; x++) {
-        if (x === foldLine) continue;
-        if (x < mergelineLeft) {
-          result[y][x] = paper[y][x];
-        } else {
-          const oppositeElement = paper[y].at(-1 - x)!;
-          result[y][x] = paper[y][x] || oppositeElement;
-        }
-      }
+      result[y][x] = paper[y][x] || oppositeElement;
     }
   }
 
@@ -155,29 +94,33 @@ const mergeHorizontalLine = (a: boolean[], b: boolean[]) => {
   return result;
 };
 
+const part1 = (input: string) => {
+  const [dots, foldLines] = input.split("\n\n").map((l) => l.split("\n"));
+  const folds = createFolds(foldLines);
+
+  let paper = createPaper(dots);
+  for (const fold of folds.slice(0, 1)) {
+    paper = fold(paper);
+  }
+
+  return countDots(paper);
+};
+
 const part2 = (input: string) => {
   const [dots, foldLines] = input.split("\n\n").map((l) => l.split("\n"));
-  const folds = foldLines.map((l): Fold => {
-    const line = l.split(" ").at(-1)!;
-    const [dir, num] = line.split("=");
-    return {
-      line: Number(num),
-      type: dir === "y" ? "up" : "left",
-    };
-  });
+  const folds = createFolds(foldLines);
 
   let paper = createPaper(dots);
   for (const fold of folds) {
-    console.log("🚀 ~ part2 ~ fold:", fold);
-    const foldOperation = fold.type === "up" ? foldUp : foldLeft;
-    paper = foldOperation(paper, fold.line);
+    paper = fold(paper);
   }
 
   printPaper(paper);
+  return "See above";
 };
 
-// testSolution("17", part1, testFile);
-// testSolution("661", part1, inputFile); // 782 too high, 635 too low
+testSolution("17", part1, testFile);
+testSolution("661", part1, inputFile); // 782 too high, 635 too low
 
-// testSolution("?", part2, testFile);
-testSolution("?", part2, inputFile); // Not PYKLKOPP
+testSolution("?", part2, testFile);
+testSolution("?", part2, inputFile); // Not PYKLKOPP, Not PKKEKBER, Not RKKEKBER
