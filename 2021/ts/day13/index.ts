@@ -3,44 +3,41 @@ import { getInputFile, getTestFile, testSolution } from "../utils";
 const testFile = getTestFile(__dirname);
 const inputFile = getInputFile(__dirname);
 
-type Paper = boolean[][];
+/** [x, y] */
+type Dot = [number, number];
+type Paper = { dots: Array<Dot>; width: number; height: number };
 type Fold = (paper: Paper) => Paper;
 
 const createPaper = (dots: string[]): Paper => {
-  let maxX = 0;
-  let maxY = 0;
+  const paper: Paper = { dots: [], width: -Infinity, height: -Infinity };
 
   for (const dot of dots) {
     const [x, y] = dot.split(",").map((char) => parseInt(char, 10));
-    maxX = Math.max(maxX, x);
-    maxY = Math.max(maxY, y);
-  }
-
-  const paper: Paper = [];
-  for (let y = 0; y < maxY + 1; y++) {
-    paper.push(new Array(maxX + 1).fill(false));
-  }
-
-  for (const dot of dots) {
-    const [x, y] = dot.split(",").map((char) => parseInt(char, 10));
-    paper[y][x] = true;
+    paper.dots.push([x, y]);
+    paper.height = Math.max(paper.height, y);
+    paper.width = Math.max(paper.width, x);
   }
 
   return paper;
 };
 
+const hasDot = (paper: Paper, pos: [number, number]): boolean =>
+  paper.dots.some((dot) => dot[0] === pos[0] && dot[1] === pos[1]);
+
 const printPaper = (paper: Paper) => {
-  console.log(
-    paper.map((l) => l.map((b) => (b ? "#" : " ")).join("")).join("\n")
-  );
+  let result = "";
+  for (let y = 0; y < paper.height; y++) {
+    let line = "";
+    for (let x = 0; x < paper.width; x++) {
+      line += hasDot(paper, [x, y]) ? "#" : ".";
+    }
+    result += "\n" + line;
+  }
+  console.log(result);
 };
 
 const countDots = (paper: Paper) => {
-  let sum = 0;
-  for (const dot of paper.flat()) {
-    if (dot) sum++;
-  }
-  return sum;
+  return paper.dots.length;
 };
 
 const createFolds = (foldLines: string[]) => {
@@ -53,45 +50,70 @@ const createFolds = (foldLines: string[]) => {
   });
 };
 
-const foldUp = (paper: Paper, foldLine: number) => {
-  const result: Paper = [];
-  const line = Math.floor(Math.abs(paper.length / 2 - foldLine));
-  console.log("🚀 ~ foldUp ~ line:", line);
+const splitHorizontal = (paper: Paper, foldLine: number) => {
+  return paper.dots.reduce<{ above: Dot[]; below: Dot[] }>(
+    (acc, curr) => {
+      if (curr[1] < foldLine) acc.above.push(curr);
+      else if (curr[1] > foldLine) acc.below.push(curr);
+      else throw new Error("Trying to fold on a dot?");
+      return acc;
+    },
+    { above: [], below: [] }
+  );
+};
 
-  for (let y = 0; y < foldLine; y++) {
-    if (y < line) {
-      result.push(paper[y].slice());
-    } else {
-      result.push(mergeHorizontalLine(paper[y], paper[paper.length - 1 - y]));
-    }
-  }
+const splitVertical = (paper: Paper, foldLine: number) => {
+  return paper.dots.reduce<{ left: Dot[]; right: Dot[] }>(
+    (acc, curr) => {
+      if (curr[0] < foldLine) acc.left.push(curr);
+      else if (curr[0] > foldLine) acc.right.push(curr);
+      else throw new Error("Trying to fold on a dot?");
+      return acc;
+    },
+    { left: [], right: [] }
+  );
+};
 
-  return result;
+const foldUp = (paper: Paper, foldLine: number): Paper => {
+  const { below } = splitHorizontal(paper, foldLine);
+
+  below.forEach((dot) => {
+    const dist = dot[1] - foldLine;
+    dot[1] = foldLine - dist;
+  });
+
+  // Filter out duplicates
+  paper.dots = paper.dots.filter((dot, i) => {
+    const firstIndexOfDot = paper.dots.findIndex(
+      (d) => d[0] === dot[0] && d[1] === dot[1]
+    );
+    return i === firstIndexOfDot;
+  });
+
+  paper.height -= Math.min(paper.height - foldLine, foldLine);
+
+  return paper;
 };
 
 const foldLeft = (paper: Paper, foldLine: number): Paper => {
-  const result: Paper = [];
+  const { right } = splitVertical(paper, foldLine);
 
-  for (let y = 0; y < paper.length; y++) {
-    if (!result[y]) result[y] = [];
-    for (let x = 0; x < foldLine; x++) {
-      const oppositeElement = paper[y][paper[y].length - 1 - x];
-      if (oppositeElement === undefined) {
-        throw new Error(`Couldn't find opposite element to ${x},${y}`);
-      }
-      result[y][x] = paper[y][x] || oppositeElement;
-    }
-  }
+  right.forEach((dot) => {
+    const dist = dot[0] - foldLine;
+    dot[0] = foldLine - dist;
+  });
 
-  return result;
-};
+  // Filter out duplicates
+  paper.dots = paper.dots.filter((dot, i) => {
+    const firstIndexOfDot = paper.dots.findIndex(
+      (d) => d[0] === dot[0] && d[1] === dot[1]
+    );
+    return i === firstIndexOfDot;
+  });
 
-const mergeHorizontalLine = (a: boolean[], b: boolean[]) => {
-  const result: boolean[] = [];
-  for (let x = 0; x < a.length; x++) {
-    result.push(a[x] || b[x]);
-  }
-  return result;
+  paper.width -= Math.min(paper.width - foldLine, foldLine);
+
+  return paper;
 };
 
 const part1 = (input: string) => {
@@ -120,7 +142,7 @@ const part2 = (input: string) => {
 };
 
 testSolution("17", part1, testFile);
-testSolution("661", part1, inputFile); // 782 too high, 635 too low
+testSolution("661", part1, inputFile);
 
 testSolution("?", part2, testFile);
-testSolution("?", part2, inputFile); // Not PYKLKOPP, Not PKKEKBER, Not RKKEKBER
+testSolution("?", part2, inputFile);
