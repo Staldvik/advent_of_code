@@ -1,3 +1,4 @@
+import { clearLine } from "readline";
 import { getInputFile, getTestFile, testSolution } from "../utils";
 
 const testFile = getTestFile(__dirname);

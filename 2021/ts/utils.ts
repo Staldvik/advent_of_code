@@ -21,3 +21,8 @@ export const testSolution = (
     console.log("Success! Expected and got", result);
   }
 };
+
+export const stringifyGrid = (arr: number[][]) =>
+  arr.map((l) => l.join("\t")).join("\n");
+
+export const printGrid = (arr: number[][]) => console.log(stringifyGrid(arr));
