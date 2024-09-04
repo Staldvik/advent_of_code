@@ -23,6 +23,6 @@ export const testSolution = (
 };
 
 export const stringifyGrid = (arr: number[][]) =>
-  arr.map((l) => l.join("\t")).join("\n");
+  arr.map((l) => l.join("")).join("\n");
 
 export const printGrid = (arr: number[][]) => console.log(stringifyGrid(arr));
