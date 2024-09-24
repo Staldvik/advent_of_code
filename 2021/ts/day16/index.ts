@@ -1,4 +1,10 @@
-import { getInputFile, getTestFile, sum, testSolution } from "../utils";
+import {
+  getInputFile,
+  getTestFile,
+  product,
+  sum,
+  testSolution,
+} from "../utils";
 
 const testFile = getTestFile(__dirname);
 const inputFile = getInputFile(__dirname);
@@ -19,20 +25,23 @@ class OperatorPacket extends Packet {
 }
 
 enum PacketType {
+  Sum = 0,
+  Product = 1,
+  Minimum = 2,
+  Maximum = 3,
   Value = 4,
+  GT = 5,
+  LT = 6,
+  EQ = 7,
 }
 
 const parsePacket = (binary: string) => {
   let cursor = 0;
-  console.log("\nNow reading", binary);
 
   const version = parseInt(binary.slice(cursor, (cursor += 3)), 2);
   const type = parseInt(binary.slice(cursor, (cursor += 3)), 2);
 
-  console.log(`Read header:`, { type, version }, `cursor now at`, cursor);
-
   if (type === PacketType.Value) {
-    console.log("DATA PACKET");
     const packet = new DataPacket(version, type);
 
     let dataString = "";
@@ -46,15 +55,11 @@ const parsePacket = (binary: string) => {
     return { packet, readBits: cursor };
   } else {
     const lengthTypeId = parseInt(binary.at(cursor++)!);
-    console.log("OPERATOR PACKET WITH", lengthTypeId);
     const parentPacket = new OperatorPacket(version, type, lengthTypeId);
 
     if (parentPacket.lengthType === 0) {
-      console.log("Total length found in", binary.slice(cursor, cursor + 15));
       const totalLength = parseInt(binary.slice(cursor, (cursor += 15)), 2);
-      console.log("🚀 ~ parsePacket ~ totalLength:", totalLength);
       while (cursor < totalLength + 7 + 15) {
-        console.log("READING", cursor, binary.slice(cursor));
         const { packet, readBits } = parsePacket(binary.slice(cursor));
         cursor += readBits;
         if (readBits === 0) break;
@@ -65,19 +70,15 @@ const parsePacket = (binary: string) => {
     if (parentPacket.lengthType === 1) {
       const packetAmount = parseInt(binary.slice(cursor, (cursor += 11)), 2);
       if (packetAmount === 0) return { packet: parentPacket, readBits: cursor };
-      console.log("Should have", packetAmount, "packet(s)");
 
       do {
-        console.log("READING", cursor, binary.slice(cursor));
         const { packet, readBits } = parsePacket(binary.slice(cursor));
-        console.log("🚀 ~ parsePacket ~ readBits:", readBits);
         cursor += readBits;
         if (readBits === 0) break;
         parentPacket.subPackets.push(packet!);
       } while (parentPacket.subPackets.length < packetAmount);
     }
 
-    console.log("🚀 ~ parsePacket ~ totalReadBits:", cursor);
     return { packet: parentPacket, readBits: cursor };
   }
 };
@@ -130,10 +131,46 @@ const flattenPackets = (packets: Packet[]) => {
   return total;
 };
 
-const part2 = (input: string) => {};
+const computeValue = (packet: Packet): number => {
+  if (packet instanceof DataPacket) return packet.data;
+  if (!(packet instanceof OperatorPacket))
+    throw new Error("Unknown packet variant");
+
+  const subpacketValues = packet.subPackets.map((p) => computeValue(p));
+  switch (packet.type) {
+    case PacketType.Sum: {
+      return sum(subpacketValues);
+    }
+    case PacketType.Product:
+      return product(subpacketValues);
+    case PacketType.Minimum:
+      return Math.min(...subpacketValues);
+    case PacketType.Maximum:
+      return Math.max(...subpacketValues);
+    case PacketType.Value:
+      throw new Error("Unexpected operator packet type (Value)");
+    case PacketType.GT:
+      return subpacketValues[0] > subpacketValues[1] ? 1 : 0;
+    case PacketType.LT:
+      return subpacketValues[0] < subpacketValues[1] ? 1 : 0;
+    case PacketType.EQ:
+      return subpacketValues[0] === subpacketValues[1] ? 1 : 0;
+    default:
+      throw new Error("Unknown packet type");
+  }
+};
+
+const part2 = (input: string) => {
+  const binary = parseInput(input);
+  const { packet } = parsePacket(binary);
+
+  const result = computeValue(packet);
+
+  return result;
+};
 
 testSolution("16", part1, testFile);
 testSolution("?", part1, inputFile);
 
 // testSolution("?", part2, testFile);
-// testSolution("?", part2, inputFile);
+testSolution("?", part2, inputFile);
