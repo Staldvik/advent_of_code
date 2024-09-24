@@ -23,87 +23,108 @@ enum PacketType {
 }
 
 const parsePacket = (binary: string) => {
-  if (binary.length < 6) return { readBits: 0 };
-  const version = parseInt(binary.slice(0, 3), 2);
-  const type = parseInt(binary.slice(3, 6), 2);
+  let cursor = 0;
+  console.log("\nNow reading", binary);
+
+  const version = parseInt(binary.slice(cursor, (cursor += 3)), 2);
+  const type = parseInt(binary.slice(cursor, (cursor += 3)), 2);
+
+  console.log(`Read header:`, { type, version }, `cursor now at`, cursor);
 
   if (type === PacketType.Value) {
+    console.log("DATA PACKET");
     const packet = new DataPacket(version, type);
 
-    // Starting at 6, read groups of 5
-    let i = 6;
     let dataString = "";
-    let group = binary.slice(i, i + 5);
+    let group = binary.slice(cursor, (cursor += 5));
     dataString = group.slice(1);
     while (group.startsWith("1")) {
-      i += 5;
-      group = binary.slice(i, i + 5);
+      group = binary.slice(cursor, (cursor += 5));
       dataString += group.slice(1);
     }
     packet.data = parseInt(dataString, 2);
-    return { packet, readBits: i + 5 };
+    return { packet, readBits: cursor };
   } else {
-    const lengthTypeId = parseInt(binary.at(6)!);
+    const lengthTypeId = parseInt(binary.at(cursor++)!);
+    console.log("OPERATOR PACKET WITH", lengthTypeId);
     const parentPacket = new OperatorPacket(version, type, lengthTypeId);
 
-    let totalReadBits = 0;
     if (parentPacket.lengthType === 0) {
-      const totalLength = parseInt(binary.slice(7, 7 + 15));
-      let i = 7 + 15;
-      while (i < totalLength + 7 + 15) {
-        const { packet, readBits } = parsePacket(binary.slice(i));
-        i += readBits;
+      console.log("Total length found in", binary.slice(cursor, cursor + 15));
+      const totalLength = parseInt(binary.slice(cursor, (cursor += 15)), 2);
+      console.log("🚀 ~ parsePacket ~ totalLength:", totalLength);
+      while (cursor < totalLength + 7 + 15) {
+        console.log("READING", cursor, binary.slice(cursor));
+        const { packet, readBits } = parsePacket(binary.slice(cursor));
+        cursor += readBits;
+        if (readBits === 0) break;
         parentPacket.subPackets.push(packet!);
-        totalReadBits += i;
       }
     }
 
     if (parentPacket.lengthType === 1) {
-      const subPacketAmount = parseInt(binary.slice(7, 7 + 11));
-      let packetAmount = 0;
-      let i = 7 + 11;
-      while (packetAmount < subPacketAmount) {
-        const { packet, readBits } = parsePacket(binary.slice(i));
-        i += readBits;
+      const packetAmount = parseInt(binary.slice(cursor, (cursor += 11)), 2);
+      if (packetAmount === 0) return { packet: parentPacket, readBits: cursor };
+      console.log("Should have", packetAmount, "packet(s)");
+
+      do {
+        console.log("READING", cursor, binary.slice(cursor));
+        const { packet, readBits } = parsePacket(binary.slice(cursor));
+        console.log("🚀 ~ parsePacket ~ readBits:", readBits);
+        cursor += readBits;
+        if (readBits === 0) break;
         parentPacket.subPackets.push(packet!);
-        packetAmount = parentPacket.subPackets.length;
-        totalReadBits += i;
-      }
+      } while (parentPacket.subPackets.length < packetAmount);
     }
 
-    return { packet: parentPacket, readBits: totalReadBits };
+    console.log("🚀 ~ parsePacket ~ totalReadBits:", cursor);
+    return { packet: parentPacket, readBits: cursor };
   }
+};
+
+// OFC IT WAS MY INPUT THAT WAS WRONG :((
+// const parseInput = (input: string) => {
+//   let binary = parseInt(input, 16).toString(2);
+
+//   if (["0", "1", "2", "3"].includes(input.at(0)!)) {
+//     binary = "00" + binary;
+//   }
+//   if (["4", "5", "6", "7"].includes(input.at(0)!)) {
+//     binary = "0" + binary;
+//   }
+
+//   return binary;
+// };
+
+const parseInput = (input: string) => {
+  console.log("🚀 ~ parseInput ~ input:", input);
+  let binary = "";
+  for (const hex of input.split("")) {
+    const hexInBinary = parseInt(hex, 16).toString(2);
+    binary += hexInBinary.padStart(4, "0");
+  }
+  return binary;
 };
 
 const part1 = (input: string) => {
-  const binary = parseInt(input, 16).toString(2);
-  const packets: Packet[] = [];
+  const binary = parseInput(input);
+  console.log("Input: ", binary);
+  console.log("Input is", binary.length, "bits long", "\n");
 
-  let cursor = 0;
-  while (cursor < binary.length) {
-    const { packet, readBits } = parsePacket(binary.slice(cursor));
-    console.log("Read", readBits, "bits");
-    console.log("Got", packet);
+  const { packet, readBits } = parsePacket(binary);
+  console.log("🚀 ~ part1 ~ packet:", packet, "by reading", readBits);
+  const packets = flattenPackets([packet]);
+  console.log("🚀 ~ part1 ~ packets:", packets);
 
-    if (readBits === 0) break;
-
-    cursor += readBits;
-    packets.push(packet!);
-  }
-
-  return sum(
-    collectPackets(packets).map((p) => {
-      return p.version;
-    })
-  );
+  return sum(packets.map((p) => p.version));
 };
 
-const collectPackets = (packets: Packet[]) => {
+const flattenPackets = (packets: Packet[]) => {
   const total: Packet[] = [];
   for (const packet of packets) {
     total.push(packet);
     if (packet instanceof OperatorPacket) {
-      total.concat(collectPackets(packet.subPackets));
+      total.push(...flattenPackets(packet.subPackets));
     }
   }
   return total;
@@ -112,7 +133,7 @@ const collectPackets = (packets: Packet[]) => {
 const part2 = (input: string) => {};
 
 testSolution("16", part1, testFile);
-// testSolution("?", part1, inputFile);
+testSolution("?", part1, inputFile);
 
 // testSolution("?", part2, testFile);
 // testSolution("?", part2, inputFile);
