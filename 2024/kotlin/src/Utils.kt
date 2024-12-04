@@ -36,3 +36,7 @@ fun String.allIndexesOf(substring: String): List<Int> {
         else null
     }
 }
+
+fun <T> List<T>.exceptIndex(index: Int): List<T> {
+    return this.filterIndexed { i, _ -> i != index }
+}

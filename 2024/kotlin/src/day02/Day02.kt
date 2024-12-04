@@ -1,5 +1,6 @@
 package day02
 
+import exceptIndex
 import println
 import readInput
 import kotlin.math.abs
@@ -8,11 +9,11 @@ fun main() {
     val part1Expected = 2
     val part2Expected = 4
 
-    fun isSafe(report: List<Int>): Boolean {
+    fun isReportSafe(levels: List<Int>): Boolean {
         var increasingLevels: Boolean? = null
-        return report.withIndex().all { (index, currentLevel) ->
+        return levels.withIndex().all { (index, currentLevel) ->
             if (index == 0) return@all true
-            val previousLevel = report[index - 1]
+            val previousLevel = levels[index - 1]
             if (currentLevel == previousLevel) return@all false
 
             val isIncrease = currentLevel - previousLevel > 0
@@ -27,30 +28,20 @@ fun main() {
         }
     }
 
+    fun getReportLevels(report: String) = report.split(" ").map { it.toInt() }
+
     fun part1(input: List<String>): Int {
         return input.count() { report ->
-            val levels = report.split(" ").map { it.toInt() }
-            isSafe(levels)
+            isReportSafe(getReportLevels(report))
         }
     }
 
     fun part2(input: List<String>): Int {
         return input.count() { report ->
-            val levels = report.split(" ").map { it.toInt() }
-
-            for (removeIndex in 0..levels.count()) {
-                val levelsWithRemovedNum = levels.filterIndexed() { index, _ ->
-                    index != removeIndex
-                }
-
-                val safe = isSafe(levelsWithRemovedNum)
-
-                if (safe) {
-                    return@count true
-                }
+            val levels = getReportLevels(report)
+            levels.withIndex().any() { (removeIndex) ->
+                isReportSafe(levels.exceptIndex(removeIndex))
             }
-
-            return@count false
         }
     }
 
