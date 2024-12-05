@@ -79,21 +79,21 @@ fun main() {
     fun part2(input: List<String>): Int {
         val words = mutableListOf<LinkedHashSet<Coord>>()
 
+        fun checkDirFor(
+            char: Char,
+            current: Coord,
+            dir: Dir,
+            result: LinkedHashSet<Coord>,
+        ): LinkedHashSet<Coord>? {
+            result.add(current)
+            if (current.char == null) return null
+            if (current.char == 'S') return result
+            if (current.char != char) return null
+            return checkDirFor(getNextChar(char), getNextCoord(current, dir, input), dir, result)
+        }
+
         for ((y, line) in input.withIndex()) {
             for ((x, char) in line.withIndex()) {
-                fun checkDirFor(
-                    char: Char,
-                    current: Coord,
-                    dir: Dir,
-                    result: LinkedHashSet<Coord>,
-                ): LinkedHashSet<Coord>? {
-                    result.add(current)
-                    if (current.char == null) return null
-                    if (current.char == 'S') return result
-                    if (current.char != char) return null
-                    return checkDirFor(getNextChar(char), getNextCoord(current, dir, input), dir, result)
-                }
-
                 val isPotentialStart = char == 'M'
                 if (isPotentialStart) {
                     val currentCord = Coord(y, x, 'M')
@@ -110,8 +110,6 @@ fun main() {
             }
         }
 
-        // Plan
-        // Find all words that share the same 'A'
         val result = words.fold(mutableMapOf<Coord, MutableList<LinkedHashSet<Coord>>>()) { map, word ->
             val wordA = word.find { it.char == 'A' }!!
             map.getOrPut(wordA) { mutableListOf() }.add(word)
@@ -120,7 +118,6 @@ fun main() {
 
         result.println()
 
-        // Find top and check down two, use other (bottom) and check up
         val onlyX = result.filter { (middle, words) ->
             val corners = listOf(Dir(1, 1), Dir(1, -1), Dir(-1, 1), Dir(-1, -1))
             corners.all { corner ->
