@@ -3,70 +3,59 @@ package day05
 import println
 import readInput
 
-
 fun main() {
     val part1Expected = 143
     val part2Expected = 123
 
-    fun part1(input: List<String>): Int {
-        val rules = input.takeWhile { it != "" }.map {
-            val (first, second) = it.split("|").map { char -> char.toInt() }
-            Pair(first, second)
-        }
+    fun getRules(input: List<String>) = input.takeWhile { line -> line != "" }.map { ruleLine ->
+        val (first, second) = ruleLine.split("|").map { it.toInt() }
+        Pair(first, second)
+    }
 
-        val updates = input.takeLastWhile { it != "" }.map { updatesLine -> updatesLine.split(",").map { it.toInt() } }
+    fun getUpdates(input: List<String>) =
+        input.takeLastWhile { line -> line != "" }.map { updatesLine -> updatesLine.split(",").map { it.toInt() } }
+
+    fun findRuleHits(rules: List<Pair<Int, Int>>, num: Int, update: List<Int>) = rules.filter {
+        val isFirst = it.first == num && update.contains(it.second)
+        val isSecond = it.second == num && update.contains(it.first)
+        isFirst || isSecond
+    }
+
+    fun part1(input: List<String>): Int {
+        val rules = getRules(input)
+        val updates = getUpdates(input)
 
         val validUpdates = updates.filter { updateLine ->
             updateLine.withIndex().all { (index, updateNumber) ->
-                val ruleHits = rules.filter { it.first == updateNumber || it.second == updateNumber }
+                val ruleHits = findRuleHits(rules, updateNumber, updateLine)
                 val (mustBeBefore, mustBeAfter) = ruleHits.partition { it.first == updateNumber }
-                val isBeforeAll = mustBeBefore.all { (_, compareNum) ->
-                    val compareNumIndex = updateLine.indexOf(compareNum)
-                    if (compareNumIndex == -1) true else index < compareNumIndex
-                }
-                val isAfterAll = mustBeAfter.all { (compareNum) ->
-                    val compareNumIndex = updateLine.indexOf(compareNum)
-                    if (compareNumIndex == -1) true else index > compareNumIndex
-                }
-                isBeforeAll && isAfterAll
+                val allBeforeRulesMet = mustBeBefore.all { index < updateLine.indexOf(it.second) }
+                val allAfterRulesMet = mustBeAfter.all { index > updateLine.indexOf(it.first) }
+                allBeforeRulesMet && allAfterRulesMet
             }
         }
 
         return validUpdates.sumOf { it[it.count() / 2] }
     }
 
-    fun part2(input: List<String>): Int {
-        val rules = input.takeWhile { it != "" }.map {
-            val (first, second) = it.split("|").map { char -> char.toInt() }
-            Pair(first, second)
-        }
 
-        val updates = input.takeLastWhile { it != "" }.map { updatesLine -> updatesLine.split(",").map { it.toInt() } }
+    fun part2(input: List<String>): Int {
+        val rules = getRules(input)
+        val updates = getUpdates(input)
 
         val (validUpdates, invalidUpdates) = updates.partition { updateLine ->
             updateLine.withIndex().all { (index, updateNumber) ->
-                val ruleHits = rules.filter { it.first == updateNumber || it.second == updateNumber }
+                val ruleHits = findRuleHits(rules, updateNumber, updateLine)
                 val (mustBeBefore, mustBeAfter) = ruleHits.partition { it.first == updateNumber }
-                val isBeforeAll = mustBeBefore.all { (_, compareNum) ->
-                    val compareNumIndex = updateLine.indexOf(compareNum)
-                    if (compareNumIndex == -1) true else index < compareNumIndex
-                }
-                val isAfterAll = mustBeAfter.all { (compareNum) ->
-                    val compareNumIndex = updateLine.indexOf(compareNum)
-                    if (compareNumIndex == -1) true else index > compareNumIndex
-                }
-                isBeforeAll && isAfterAll
+                val allBeforeRulesMet = mustBeBefore.all { index < updateLine.indexOf(it.second) }
+                val allAfterRulesMet = mustBeAfter.all { index > updateLine.indexOf(it.first) }
+                allBeforeRulesMet && allAfterRulesMet
             }
         }
 
         val correctedUpdates = invalidUpdates.map { updateLine ->
             updateLine.withIndex().sortedBy { (index, updateNumber) ->
-                val ruleHits = rules.filter {
-                    val isFirst = it.first == updateNumber && updateLine.contains(it.second)
-                    val isSecond = it.second == updateNumber && updateLine.contains(it.first)
-
-                    isFirst || isSecond
-                }
+                val ruleHits = findRuleHits(rules, updateNumber, updateLine)
                 val (mustBeBefore, mustBeAfter) = ruleHits.partition { it.first == updateNumber }
                 mustBeAfter.count() - mustBeBefore.count()
             }.map { it.value }
