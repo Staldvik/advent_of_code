@@ -44,21 +44,21 @@ fun main() {
         val updates = getUpdates(input)
 
         val (validUpdates, invalidUpdates) = updates.partition { updateLine ->
-            updateLine.withIndex().all { (index, updateNumber) ->
-                val ruleHits = findRuleHits(rules, updateNumber, updateLine)
-                val (mustBeBefore, mustBeAfter) = ruleHits.partition { it.first == updateNumber }
-                val allBeforeRulesMet = mustBeBefore.all { index < updateLine.indexOf(it.second) }
-                val allAfterRulesMet = mustBeAfter.all { index > updateLine.indexOf(it.first) }
+            updateLine.withIndex().all { updateNumber ->
+                val ruleHits = findRuleHits(rules, updateNumber.value, updateLine)
+                val (mustBeBefore, mustBeAfter) = ruleHits.partition { it.first == updateNumber.value }
+                val allBeforeRulesMet = mustBeBefore.all { updateNumber.index < updateLine.indexOf(it.second) }
+                val allAfterRulesMet = mustBeAfter.all { updateNumber.index > updateLine.indexOf(it.first) }
                 allBeforeRulesMet && allAfterRulesMet
             }
         }
 
         val correctedUpdates = invalidUpdates.map { updateLine ->
-            updateLine.withIndex().sortedBy { (index, updateNumber) ->
+            updateLine.sortedBy { updateNumber ->
                 val ruleHits = findRuleHits(rules, updateNumber, updateLine)
                 val (mustBeBefore, mustBeAfter) = ruleHits.partition { it.first == updateNumber }
                 mustBeAfter.count() - mustBeBefore.count()
-            }.map { it.value }
+            }
         }
 
         return correctedUpdates.sumOf { it[it.count() / 2] }
