@@ -76,12 +76,27 @@ fun main() {
         val room = Grid.fromInput(input)
 
         val intersections = room.grid.flatMapIndexed { y, row ->
-            List(row.size) { x -> Coord(y, x) }
+            (0..<row.size).map { x -> Coord(y, x) }
         }.filter { coord -> room.atCoord(coord) != '#' }
 
         val startPos = room.getStart()
+        var guardPos = startPos
+        var guardDir = Dir(-1, 0)
+        val seenPos = mutableSetOf<Coord>()
+        while (guardPos.isWithin(room)) {
+            seenPos.add(guardPos)
+            val nextPos = guardPos.moveDir(guardDir)
+            val nextChar = room.atCoord(nextPos)
+            if (nextChar == '#') {
+                guardDir = guardDir.rotateRight()
+            } else {
+                guardPos = nextPos
+            }
+        }
 
-        val causesLoop = intersections.filter { testIntersection ->
+        seenPos.count().println()
+
+        val causesLoop = seenPos.filter { testIntersection ->
             val testRoom = room.setAtCoord(testIntersection, '#')
 
             var guardPos = startPos
