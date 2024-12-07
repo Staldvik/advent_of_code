@@ -6,7 +6,7 @@ import readInput
 enum class Operator {
     Plus,
     Multiply,
-    Concatinate
+    Concatenate
 }
 
 fun main() {
@@ -18,7 +18,7 @@ fun main() {
         return when (operator) {
             Operator.Multiply -> numbers.first * numbers.second
             Operator.Plus -> numbers.first + numbers.second
-            Operator.Concatinate -> "${numbers.first}${numbers.second}".toLong()
+            Operator.Concatenate -> "${numbers.first}${numbers.second}".toLong()
         }
     }
 
@@ -39,53 +39,38 @@ fun main() {
     fun trySolve(operators: List<Operator>, wantedResult: Long, numbers: List<Long>): Boolean {
         val combinations = generateCombinations(operators, numbers)
         return combinations.any() { combination ->
-            var result: Long = numbers.get(0)
-            var i = 1
-            for (operator in combination) {
-                result = calculate(operator, Pair(result, numbers.get(i)))
-                i++
+            val result = numbers.reduceIndexed { index, acc, l ->
+                if (index == 0) return@reduceIndexed acc
+                calculate(combination[index - 1], Pair(acc, l))
             }
             result == wantedResult
         }
     }
 
-    fun part1(input: List<String>): Long {
-        val lines = input.map { line ->
-            val (equationString, equation) = line.split(": ")
-            val equationResult = equationString.toLong()
-            val equationNumbers = equation.split(" ").map { it.toLong() }
-            Pair(equationResult, equationNumbers)
-        }
+    fun parseInput(input: List<String>): List<Pair<Long, List<Long>>> = input.map { line ->
+        val (equationString, equation) = line.split(": ")
+        val equationResult = equationString.toLong()
+        val equationNumbers = equation.split(" ").map { it.toLong() }
+        Pair(equationResult, equationNumbers)
+    }
 
-        lines.println("lines")
+    fun part1(input: List<String>): Long {
+        val lines = parseInput(input)
 
         val validResults = lines.filter { (equationResult, equationNumbers) ->
             trySolve(listOf(Operator.Plus, Operator.Multiply), equationResult, equationNumbers)
         }
 
-        validResults.println("Valid results")
-
-        validResults.sumOf { it.first }.println("result")
         return validResults.sumOf { it.first }
     }
 
     fun part2(input: List<String>): Long {
-        val lines = input.map { line ->
-            val (equationString, equation) = line.split(": ")
-            val equationResult = equationString.toLong()
-            val equationNumbers = equation.split(" ").map { it.toLong() }
-            Pair(equationResult, equationNumbers)
-        }
-
-        lines.println("lines")
+        val lines = parseInput(input)
 
         val validResults = lines.filter { (equationResult, equationNumbers) ->
-            trySolve(listOf(Operator.Plus, Operator.Multiply, Operator.Concatinate), equationResult, equationNumbers)
+            trySolve(listOf(Operator.Plus, Operator.Multiply, Operator.Concatenate), equationResult, equationNumbers)
         }
 
-        validResults.println("Valid results")
-
-        validResults.sumOf { it.first }.println("result")
         return validResults.sumOf { it.first }
     }
 
