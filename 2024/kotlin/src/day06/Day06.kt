@@ -1,67 +1,25 @@
 package day06
 
+import Dir
+import Grid
+import Pos
 import println
 import readInput
-
-data class Dir(val dy: Int, val dx: Int) {
-    fun rotateRight() = when (this) {
-        Dir(-1, 0) -> Dir(0, 1)
-        Dir(0, 1) -> Dir(1, 0)
-        Dir(1, 0) -> Dir(0, -1)
-        Dir(0, -1) -> Dir(-1, 0)
-        else -> throw NotImplementedError("rotateRight not implemented for $this")
-    }
-}
-
-data class Coord(val y: Int, val x: Int) {
-    fun moveDir(dir: Dir, steps: Int = 1) = Coord(y = y + (dir.dy * steps), x = x + (dir.dx * steps))
-    fun isWithin(grid: Grid) = grid.grid.getOrNull(this.y)?.getOrNull(this.x) != null
-}
-
-
-class Grid(val grid: List<MutableList<Char>>) {
-    companion object {
-        fun fromInput(input: List<String>) = Grid(input.map { it.toCharArray().toMutableList() })
-    }
-
-    fun getStart(): Coord {
-        grid.forEachIndexed { y, row ->
-            val x = row.indexOf('^')
-            if (x != -1) return Coord(y, x)
-        }
-        throw IllegalStateException("No start character '^' found in grid")
-    }
-
-    fun atCoord(coord: Coord) = this.grid.getOrNull(coord.y)?.getOrNull(coord.x)
-
-    fun setAtCoord(coord: Coord, char: Char): Grid {
-        val newGrid = grid.map { it.toMutableList() }.toMutableList()
-        newGrid[coord.y][coord.x] = char
-        return Grid(newGrid)
-    }
-
-    fun findAll(findChar: Char): MutableSet<Coord> = grid.flatMapIndexed() { y, row ->
-        row.mapIndexed() { x, char ->
-            if (char == findChar) Coord(y, x) else null
-        }.filterNotNull()
-    }.toMutableSet()
-}
 
 fun main() {
     val part1Expected = 41
     val part2Expected = 6
 
-    fun part1(input: List<String>): Int {
-        val room = Grid.fromInput(input)
-        val startPos = room.getStart()
+    fun getGuardRoute(room: Grid): Set<Pos> {
+        val startPos = room.getCharPos('^')
 
         var guardPos = startPos
         var guardDir = Dir(-1, 0)
-        val seenPos = mutableSetOf<Coord>()
+        val seenPos = mutableSetOf<Pos>()
         while (guardPos.isWithin(room)) {
             seenPos.add(guardPos)
             val nextPos = guardPos.moveDir(guardDir)
-            val nextChar = room.atCoord(nextPos)
+            val nextChar = room.atPos(nextPos)
             if (nextChar == '#') {
                 guardDir = guardDir.rotateRight()
             } else {
@@ -69,45 +27,32 @@ fun main() {
             }
         }
 
-        return seenPos.count()
+        return seenPos
+    }
+
+    fun part1(input: List<String>): Int {
+        val room = Grid.fromInput(input)
+        return getGuardRoute(room).count()
     }
 
     fun part2(input: List<String>): Int {
         val room = Grid.fromInput(input)
+        val guardRoute = getGuardRoute(room)
 
-        val intersections = room.grid.flatMapIndexed { y, row ->
-            (0..<row.size).map { x -> Coord(y, x) }
-        }.filter { coord -> room.atCoord(coord) != '#' }
+        val causesLoop = guardRoute.filter { testIntersection ->
+            val testRoom = room.setAtPos(testIntersection, '#')
 
-        val startPos = room.getStart()
-        var guardPos = startPos
-        var guardDir = Dir(-1, 0)
-        val seenPos = mutableSetOf<Coord>()
-        while (guardPos.isWithin(room)) {
-            seenPos.add(guardPos)
-            val nextPos = guardPos.moveDir(guardDir)
-            val nextChar = room.atCoord(nextPos)
-            if (nextChar == '#') {
-                guardDir = guardDir.rotateRight()
-            } else {
-                guardPos = nextPos
-            }
-        }
-
-        seenPos.count().println()
-
-        val causesLoop = seenPos.filter { testIntersection ->
-            val testRoom = room.setAtCoord(testIntersection, '#')
-
-            var guardPos = startPos
+            var guardPos = room.getCharPos('^')
             var guardDir = Dir(-1, 0)
-            val seenPos = mutableMapOf<Coord, MutableSet<Dir>>()
+            val seenPos = mutableMapOf<Pos, MutableSet<Dir>>()
             while (guardPos.isWithin(testRoom)) {
-                if (seenPos[guardPos]?.contains(guardDir) == true) return@filter true
+                if (seenPos[guardPos]?.contains(guardDir) == true) {
+                    return@filter true
+                }
                 seenPos.getOrPut(guardPos) { mutableSetOf() }.add(guardDir)
 
                 val nextPos = guardPos.moveDir(guardDir)
-                val nextChar = testRoom.atCoord(nextPos)
+                val nextChar = testRoom.atPos(nextPos)
                 if (nextChar == '#') {
                     guardDir = guardDir.rotateRight()
                 } else {
@@ -115,7 +60,7 @@ fun main() {
                 }
             }
 
-            false
+            return@filter false
         }
 
         return causesLoop.count()

@@ -1,5 +1,8 @@
 package day04
 
+import Dir
+import Grid
+import Pos
 import println
 import readInput
 
@@ -7,9 +10,6 @@ import readInput
 fun main() {
     val part1Expected = 18
     val part2Expected = 9
-
-    data class Dir(val dy: Int, val dx: Int)
-    data class Coord(val y: Int, val x: Int, val char: Char?)
 
     val dirs = listOf(
         Dir(-1, -1),
@@ -31,39 +31,38 @@ fun main() {
         }
     }
 
-    fun getNextCoord(coord: Coord, dir: Dir, input: List<String>): Coord {
-        val nextY = coord.y + dir.dy
-        val nextX = coord.x + dir.dx
-        return Coord(
-            nextY, nextX, input.getOrNull(nextY)?.getOrNull(nextX)
-        )
+    fun getNextPos(current: Pos, dir: Dir): Pos {
+        val nextY = current.y + dir.dy
+        val nextX = current.x + dir.dx
+        return Pos(nextY, nextX)
     }
 
     fun part1(input: List<String>): Int {
-        val words = mutableListOf<Set<Coord>>()
+        val wordPuzzle = Grid.fromInput(input)
+        val words = mutableListOf<Set<Pos>>()
 
         for ((y, line) in input.withIndex()) {
             for ((x, char) in line.withIndex()) {
                 fun checkDirFor(
                     char: Char,
-                    current: Coord,
+                    current: Pos,
                     dir: Dir,
-                    result: MutableSet<Coord>,
-                ): MutableSet<Coord>? {
+                    result: MutableSet<Pos>,
+                ): MutableSet<Pos>? {
                     result.add(current)
-                    if (current.char == null) return null
-                    if (current.char == 'S') return result
-                    if (current.char != char) return null
-                    return checkDirFor(getNextChar(char), getNextCoord(current, dir, input), dir, result)
+                    val currentChar = wordPuzzle.atPos(current) ?: return null
+                    if (currentChar == 'S') return result
+                    if (currentChar != char) return null
+                    return checkDirFor(getNextChar(char), getNextPos(current, dir), dir, result)
                 }
 
                 val isPotentialStart = char == 'X'
                 if (isPotentialStart) {
-                    val currentCord = Coord(y, x, 'X')
+                    val currentCord = Pos(y, x)
                     for (dir in dirs) {
                         val dirResult = checkDirFor(
                             getNextChar(char),
-                            getNextCoord(currentCord, dir, input),
+                            getNextPos(currentCord, dir),
                             dir,
                             mutableSetOf(currentCord)
                         )
@@ -77,30 +76,31 @@ fun main() {
     }
 
     fun part2(input: List<String>): Int {
-        val words = mutableListOf<LinkedHashSet<Coord>>()
+        val wordPuzzle = Grid.fromInput(input)
+        val words = mutableListOf<Set<Pos>>()
 
         fun checkDirFor(
             char: Char,
-            current: Coord,
+            current: Pos,
             dir: Dir,
-            result: LinkedHashSet<Coord>,
-        ): LinkedHashSet<Coord>? {
+            result: LinkedHashSet<Pos>,
+        ): LinkedHashSet<Pos>? {
             result.add(current)
-            if (current.char == null) return null
-            if (current.char == 'S') return result
-            if (current.char != char) return null
-            return checkDirFor(getNextChar(char), getNextCoord(current, dir, input), dir, result)
+            val currentChar = wordPuzzle.atPos(current) ?: return null
+            if (currentChar == 'S') return result
+            if (currentChar != char) return null
+            return checkDirFor(getNextChar(char), getNextPos(current, dir), dir, result)
         }
 
         for ((y, line) in input.withIndex()) {
             for ((x, char) in line.withIndex()) {
                 val isPotentialStart = char == 'M'
                 if (isPotentialStart) {
-                    val currentCord = Coord(y, x, 'M')
+                    val currentCord = Pos(y, x)
                     for (dir in dirs) {
                         val dirResult = checkDirFor(
                             getNextChar(char),
-                            getNextCoord(currentCord, dir, input),
+                            getNextPos(currentCord, dir),
                             dir,
                             linkedSetOf(currentCord)
                         )
@@ -110,13 +110,11 @@ fun main() {
             }
         }
 
-        val result = words.fold(mutableMapOf<Coord, MutableList<LinkedHashSet<Coord>>>()) { map, word ->
-            val wordA = word.find { it.char == 'A' }!!
+        val result = words.fold(mutableMapOf<Pos, MutableList<Set<Pos>>>()) { map, word ->
+            val wordA = word.find { wordPuzzle.atPos(it) == 'A' }!!
             map.getOrPut(wordA) { mutableListOf() }.add(word)
             map
         }.filter { it.value.count() > 1 }
-
-        result.println()
 
         val onlyX = result.filter { (middle, words) ->
             val corners = listOf(Dir(1, 1), Dir(1, -1), Dir(-1, 1), Dir(-1, -1))
@@ -126,17 +124,10 @@ fun main() {
                 words.any() { word ->
                     word.any() { wordChar ->
                         wordChar.x == cornerX && wordChar.y == cornerY
-
                     }
                 }
             }
         }
-
-
-        // Has S or M opposite
-        // Has S or M opposite
-
-        onlyX.count().println("Onlyx count")
 
         return onlyX.count()
     }
