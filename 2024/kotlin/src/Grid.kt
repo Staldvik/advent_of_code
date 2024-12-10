@@ -6,6 +6,15 @@ data class Dir(val dy: Int, val dx: Int) {
         Dir(0, -1) -> Dir(-1, 0)
         else -> throw NotImplementedError("rotateRight not implemented for $this")
     }
+
+    companion object {
+        val cardinalDirs = listOf(
+            Dir(-1, 0),
+            Dir(0, 1),
+            Dir(1, 0),
+            Dir(0, -1)
+        )
+    }
 }
 
 data class Pos(val y: Int, val x: Int) {

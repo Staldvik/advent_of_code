@@ -8,10 +8,8 @@ fun main() {
     val part1Expected = 1928L
     val part2Expected = 2858L
 
-    fun part1(input: List<String>): Long {
-        val diskMap = input.first().toCharArray().toMutableList()
+    fun createFileSystem(diskMap: CharArray): MutableMap<IntRange, Int?> {
         val fileSystem = mutableMapOf<IntRange, Int?>()
-
         var pointer = 0;
         var idCounter = 0;
         diskMap.forEachIndexed() { index, block ->
@@ -29,6 +27,12 @@ fun main() {
 
             pointer += blockValue
         }
+        return fileSystem
+    }
+
+    fun part1(input: List<String>): Long {
+        val diskMap = input.first().toCharArray()
+        val fileSystem = createFileSystem(diskMap)
 
         fun compact(id: Int, sourceRange: IntRange) {
             val destination = fileSystem
@@ -77,39 +81,16 @@ fun main() {
         }
 
         val result = fileSystem.entries.sumOf {
-            if (it.value != null) {
-                it.key.sumOf { idx -> idx * it.value!!.toLong() }
-            } else {
-                0L
-            }
+            val fileId = it.value ?: return@sumOf 0
+            it.key.sumOf { idx -> Math.multiplyFull(idx, fileId) }
         }
-
-        result.println("result")
 
         return result
     }
 
     fun part2(input: List<String>): Long {
-        val diskMap = input.first().toCharArray().toMutableList()
-        val fileSystem = mutableMapOf<IntRange, Int?>()
-
-        var pointer = 0;
-        var idCounter = 0;
-        diskMap.forEachIndexed() { index, block ->
-            val blockValue = block.digitToInt()
-            if (blockValue == 0) return@forEachIndexed
-
-            val range = pointer.rangeUntil(pointer + blockValue)
-            val isFile = index % 2 == 0
-
-            if (isFile) {
-                fileSystem[range] = idCounter++
-            } else {
-                fileSystem[range] = null
-            }
-
-            pointer += blockValue
-        }
+        val diskMap = input.first().toCharArray()
+        val fileSystem = createFileSystem(diskMap)
 
         fun compact(id: Int, sourceRange: IntRange) {
             val destination = fileSystem
@@ -120,23 +101,18 @@ fun main() {
 
             val destinationRange = destination.key
 
-            if (sourceRange.count() > destinationRange.count()) {
-                return
-            } else if (sourceRange.count() == destinationRange.count()) {
-                // Source is the same as destination, fill up
+            if (sourceRange.count() == destinationRange.count()) {
                 fileSystem[destinationRange] = id
             } else {
-                // Source is smaller to destination
-
                 // Remove the to-be overwritten range
                 fileSystem.remove(destinationRange)
+
                 // Add entry for source
                 val insertedRange = destinationRange.first..<destinationRange.first + sourceRange.count()
                 fileSystem[insertedRange] = id
-
+                
                 // Remember to add entry for remainder in destination
-                val remainingRange =
-                    insertedRange.last + 1..destinationRange.last
+                val remainingRange = insertedRange.last + 1..destinationRange.last
                 fileSystem[remainingRange] = null
             }
 
@@ -149,17 +125,10 @@ fun main() {
             if (id != null) compact(id, range)
         }
 
-        fileSystem.println()
-
         val result = fileSystem.entries.sumOf {
-            if (it.value != null) {
-                it.key.sumOf { idx -> idx * it.value!!.toLong() }
-            } else {
-                0L
-            }
+            val fileId = it.value ?: return@sumOf 0
+            it.key.sumOf { idx -> Math.multiplyFull(idx, fileId) }
         }
-
-        result.println("result")
 
         return result
     }
@@ -171,6 +140,6 @@ fun main() {
 
     // Read the input from the `src/Day01.txt` file.
     val input = readInput("input")
-    //part1(input).println("part1") // 6193070082075 Too low, 6215617910304 Also too low
+    part1(input).println("part1") // 6193070082075 Too low, 6215617910304 Also too low
     part2(input).println("part2")
 }
