@@ -14,6 +14,15 @@ data class Dir(val dy: Int, val dx: Int) {
             Dir(1, 0),
             Dir(0, -1)
         )
+
+        val diagonalDirs = listOf(
+            Dir(-1, -1),
+            Dir(-1, 1),
+            Dir(1, -1),
+            Dir(1, 1),
+        )
+
+        val allDirs = cardinalDirs + diagonalDirs
     }
 }
 

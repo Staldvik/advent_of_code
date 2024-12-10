@@ -45,9 +45,7 @@ fun main() {
 
     fun part2(input: List<String>): Int {
         val map = Grid.fromInput(input)
-        map.print()
         val starts = map.findAll('0')
-        var sum = 0;
 
         fun walk(pos: Pos, prevChar: Char?, path: MutableSet<Pos>, finishedPaths: MutableList<Set<Pos>>): Boolean {
             val currentChar = map.atPos(pos) ?: return false
@@ -66,14 +64,11 @@ fun main() {
             return false
         }
 
-        for (start in starts) {
-            start.println("Trying to start in")
+        return starts.sumOf { start ->
             val finishedPaths = mutableListOf<Set<Pos>>()
             walk(start, null, mutableSetOf(), finishedPaths)
-            sum += finishedPaths.count()
+            finishedPaths.count()
         }
-
-        return sum
     }
 
     // Or read a large test input from the `src/Day01_test.txt` file:

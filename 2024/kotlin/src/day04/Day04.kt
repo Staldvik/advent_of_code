@@ -11,17 +11,6 @@ fun main() {
     val part1Expected = 18
     val part2Expected = 9
 
-    val dirs = listOf(
-        Dir(-1, -1),
-        Dir(-1, 0),
-        Dir(-1, 1),
-        Dir(0, -1),
-        Dir(0, 1),
-        Dir(1, -1),
-        Dir(1, 0),
-        Dir(1, 1),
-    )
-
     fun getNextChar(char: Char): Char {
         return when (char) {
             'X' -> 'M'
@@ -29,12 +18,6 @@ fun main() {
             'A' -> 'S'
             else -> error("Trying to get next char for $char")
         }
-    }
-
-    fun getNextPos(current: Pos, dir: Dir): Pos {
-        val nextY = current.y + dir.dy
-        val nextX = current.x + dir.dx
-        return Pos(nextY, nextX)
     }
 
     fun part1(input: List<String>): Int {
@@ -53,16 +36,16 @@ fun main() {
                     val currentChar = wordPuzzle.atPos(current) ?: return null
                     if (currentChar == 'S') return result
                     if (currentChar != char) return null
-                    return checkDirFor(getNextChar(char), getNextPos(current, dir), dir, result)
+                    return checkDirFor(getNextChar(char), current.moveDir(dir), dir, result)
                 }
 
                 val isPotentialStart = char == 'X'
                 if (isPotentialStart) {
                     val currentCord = Pos(y, x)
-                    for (dir in dirs) {
+                    for (dir in Dir.allDirs) {
                         val dirResult = checkDirFor(
                             getNextChar(char),
-                            getNextPos(currentCord, dir),
+                            currentCord.moveDir(dir),
                             dir,
                             mutableSetOf(currentCord)
                         )
@@ -89,7 +72,7 @@ fun main() {
             val currentChar = wordPuzzle.atPos(current) ?: return null
             if (currentChar == 'S') return result
             if (currentChar != char) return null
-            return checkDirFor(getNextChar(char), getNextPos(current, dir), dir, result)
+            return checkDirFor(getNextChar(char), current.moveDir(dir), dir, result)
         }
 
         for ((y, line) in input.withIndex()) {
@@ -97,10 +80,10 @@ fun main() {
                 val isPotentialStart = char == 'M'
                 if (isPotentialStart) {
                     val currentCord = Pos(y, x)
-                    for (dir in dirs) {
+                    for (dir in Dir.allDirs) {
                         val dirResult = checkDirFor(
                             getNextChar(char),
-                            getNextPos(currentCord, dir),
+                            currentCord.moveDir(dir),
                             dir,
                             linkedSetOf(currentCord)
                         )
