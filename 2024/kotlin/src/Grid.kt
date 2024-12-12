@@ -8,6 +8,18 @@ data class Dir(val dy: Int, val dx: Int) {
     }
 
     companion object {
+
+        val verticalDirs = listOf(
+            Dir(-1, 0),
+            Dir(1, 0)
+        )
+
+        val horizontalDirs = listOf(
+            Dir(0, -1),
+            Dir(0, 1)
+        )
+
+        // Not reusing the above because I want a certain order here
         val cardinalDirs = listOf(
             Dir(-1, 0),
             Dir(0, 1),
@@ -37,6 +49,7 @@ data class Pos(val y: Int, val x: Int) {
     }
 
     fun isWithin(grid: Grid) = grid.grid.getOrNull(this.y)?.getOrNull(this.x) != null
+    fun getDirTo(pos: Pos) = Dir.allDirs.find { dir -> this.moveDir(dir) == pos }
 }
 
 
@@ -52,6 +65,18 @@ class Grid(val grid: List<MutableList<Char>>) {
         }
     }
 
+    fun printWith(positions: List<Pos>) {
+        kotlin.io.println()
+        grid.forEachIndexed { y, row ->
+            val newRow = row.mapIndexed { x, char ->
+                val pos = Pos(y, x)
+                if (positions.contains(pos)) char
+                else '*'
+            }
+            kotlin.io.println(newRow.joinToString(""))
+        }
+    }
+
     /** Note: only gets the first even if several are present */
     fun getCharPos(char: Char): Pos {
         grid.forEachIndexed { y, row ->
@@ -61,13 +86,11 @@ class Grid(val grid: List<MutableList<Char>>) {
         throw IllegalStateException("No start character '^' found in grid")
     }
 
-    fun getAntennas(): Map<Char, Set<Pos>> {
+    fun getChars(): MutableMap<Char, MutableSet<Pos>> {
         val result = mutableMapOf<Char, MutableSet<Pos>>()
         grid.forEachIndexed { y, row ->
             row.forEachIndexed { x, char ->
-                if (char != '.') {
-                    result.getOrPut(char) { mutableSetOf() }.add((Pos(y, x)))
-                }
+                result.getOrPut(char) { mutableSetOf() }.add((Pos(y, x)))
             }
         }
         return result

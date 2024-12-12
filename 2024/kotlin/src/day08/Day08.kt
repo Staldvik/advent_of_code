@@ -13,7 +13,8 @@ fun main() {
 
     fun part1(input: List<String>): Int {
         var map = Grid.fromInput(input)
-        val frequencyAntennas = map.getAntennas()
+        val frequencyAntennas = map.getChars()
+        frequencyAntennas.remove('.')
 
         val antiNodes = frequencyAntennas.values.flatMap { antennas ->
             antennas.flatMap {
@@ -32,7 +33,8 @@ fun main() {
 
     fun part2(input: List<String>): Int {
         var map = Grid.fromInput(input)
-        val frequencyAntennas = map.getAntennas()
+        val frequencyAntennas = map.getChars()
+        frequencyAntennas.remove('.')
 
         val antiNodes = frequencyAntennas.values.flatMap { antennas ->
             antennas.flatMap {
