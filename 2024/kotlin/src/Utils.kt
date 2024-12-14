@@ -4,14 +4,24 @@ import kotlin.io.path.Path
 import kotlin.io.path.readText
 
 /**
- * Reads lines from the given input txt file.
+ * Read input as single String
  */
-fun readInput(name: String): List<String> {
+fun readInput(name: String): String {
     val callerClass = Thread.currentThread().stackTrace[2].className
     val packagePath = callerClass.replace('.', '/')
         .substringBeforeLast('/')
     val filePath = "src/$packagePath/$name.txt"
+    return Path(filePath).readText().trim()
+}
 
+/**
+ * Reads lines from the given input txt file.
+ */
+fun parseInput(name: String): List<String> {
+    val callerClass = Thread.currentThread().stackTrace[2].className
+    val packagePath = callerClass.replace('.', '/')
+        .substringBeforeLast('/')
+    val filePath = "src/$packagePath/$name.txt"
     return Path(filePath).readText().trim().lines()
 }
 

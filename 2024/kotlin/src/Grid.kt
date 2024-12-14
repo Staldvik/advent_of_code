@@ -39,7 +39,19 @@ data class Dir(val dy: Int, val dx: Int) {
 }
 
 data class Pos(val y: Int, val x: Int) {
-    fun moveDir(dir: Dir, steps: Int = 1) = Pos(y = y + (dir.dy * steps), x = x + (dir.dx * steps))
+    fun moveDir(dir: Dir, steps: Int = 1, wrap: Pos? = null): Pos {
+        if (wrap != null) {
+            val newY = y + dir.dy * steps
+            val newX = x + dir.dx * steps
+
+            val wrappedY = ((newY % wrap.y) + wrap.y) % wrap.y
+            val wrappedX = ((newX % wrap.x) + wrap.x) % wrap.x
+
+            return Pos(wrappedY, wrappedX)
+        }
+        return Pos(y = y + (dir.dy * steps), x = x + (dir.dx * steps))
+    }
+
     fun moveDirSequence(dir: Dir, steps: Int = 1) = sequence {
         var currentPoint = this@Pos
         while (true) {
@@ -50,12 +62,14 @@ data class Pos(val y: Int, val x: Int) {
 
     fun isWithin(grid: Grid) = grid.grid.getOrNull(this.y)?.getOrNull(this.x) != null
     fun getDirTo(pos: Pos) = Dir.allDirs.find { dir -> this.moveDir(dir) == pos }
+    fun getDistTo(pos: Pos) = Dir(pos.y - this.y, pos.x - this.x)
 }
 
 
 class Grid(val grid: List<MutableList<Char>>) {
     companion object {
         fun fromInput(input: List<String>) = Grid(input.map { it.toCharArray().toMutableList() })
+        fun ofSize(width: Int, height: Int) = Grid(List(height) { MutableList(width) { 'x' } })
     }
 
     fun print() {
@@ -65,13 +79,21 @@ class Grid(val grid: List<MutableList<Char>>) {
         }
     }
 
+    fun showOnly(positions: List<Pos>) = grid.mapIndexed { y, row ->
+        row.mapIndexed { x, char ->
+            val pos = Pos(y, x)
+            if (positions.contains(pos)) char
+            else ' '
+        }
+    }
+
     fun printWith(positions: List<Pos>) {
         kotlin.io.println()
         grid.forEachIndexed { y, row ->
             val newRow = row.mapIndexed { x, char ->
                 val pos = Pos(y, x)
                 if (positions.contains(pos)) char
-                else '*'
+                else ' '
             }
             kotlin.io.println(newRow.joinToString(""))
         }

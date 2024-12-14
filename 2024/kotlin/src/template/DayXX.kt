@@ -1,7 +1,7 @@
 package template
 
+import parseInput
 import println
-import readInput
 
 
 fun main() {
@@ -17,14 +17,14 @@ fun main() {
     }
 
     // Or read a large test input from the `src/Day01_test.txt` file:
-    val testInput = readInput("test")
+    val testInput = parseInput("test")
     val part1Result = part1(testInput)
     check(part1Result == part1Expected) { "expected $part1Expected, got $part1Result" }
     val part2Result = part1(testInput)
     check(part2Result == part2Expected) { "expected $part2Expected, got $part2Result" }
 
     // Read the input from the `src/Day01.txt` file.
-    val input = readInput("input")
+    val input = parseInput("input")
     part1(input).println("part1")
     part2(input).println("part2")
 }

@@ -1,8 +1,8 @@
 package day02
 
 import exceptIndex
+import parseInput
 import println
-import readInput
 import kotlin.math.abs
 
 fun main() {
@@ -46,7 +46,7 @@ fun main() {
     }
 
     // Or read a large test input from the `src/Day01_test.txt` file:
-    val testInput = readInput("test")
+    val testInput = parseInput("test")
     val testResult = part1(testInput)
     testResult.println("part1 test")
     check(testResult == part1Expected)
@@ -56,7 +56,7 @@ fun main() {
     check(part2Test == part2Expected)
 
     // Read the input from the `src/Day01.txt` file.
-    val input = readInput("input")
+    val input = parseInput("input")
     part1(input).println("part1")
     part2(input).println("part2") // 621 too low
 }
