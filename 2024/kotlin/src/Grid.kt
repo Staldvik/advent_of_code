@@ -1,4 +1,18 @@
 data class Dir(val dy: Int, val dx: Int) {
+    fun print() {
+        when (this) {
+            Dir(-1, 0) -> kotlin.io.println('↑')
+            Dir(0, 1) -> kotlin.io.println('→')
+            Dir(1, 0) -> kotlin.io.println('↓')
+            Dir(0, -1) -> kotlin.io.println('←')
+
+            Dir(-1, -1) -> kotlin.io.println('↖')
+            Dir(-1, 1) -> kotlin.io.println('↗')
+            Dir(1, 1) -> kotlin.io.println('↘')
+            Dir(1, -1) -> kotlin.io.println('↙')
+        }
+    }
+
     fun rotateRight() = when (this) {
         Dir(-1, 0) -> Dir(0, 1)
         Dir(0, 1) -> Dir(1, 0)
@@ -8,23 +22,22 @@ data class Dir(val dy: Int, val dx: Int) {
     }
 
     companion object {
+        val UP = Dir(-1, 0)
+        val DOWN = Dir(1, 0)
+        val LEFT = Dir(0, -1)
+        val RIGHT = Dir(0, 1)
 
         val verticalDirs = listOf(
-            Dir(-1, 0),
-            Dir(1, 0)
+            UP, DOWN
         )
 
         val horizontalDirs = listOf(
-            Dir(0, -1),
-            Dir(0, 1)
+            LEFT, RIGHT
         )
 
         // Not reusing the above because I want a certain order here
         val cardinalDirs = listOf(
-            Dir(-1, 0),
-            Dir(0, 1),
-            Dir(1, 0),
-            Dir(0, -1)
+            UP, RIGHT, DOWN, LEFT
         )
 
         val diagonalDirs = listOf(
@@ -93,7 +106,7 @@ class Grid(val grid: List<MutableList<Char>>) {
             val newRow = row.mapIndexed { x, char ->
                 val pos = Pos(y, x)
                 if (positions.contains(pos)) char
-                else ' '
+                else '·'
             }
             kotlin.io.println(newRow.joinToString(""))
         }
@@ -124,6 +137,14 @@ class Grid(val grid: List<MutableList<Char>>) {
         val newGrid = grid.map { it.toMutableList() }.toMutableList()
         newGrid[pos.y][pos.x] = char
         return Grid(newGrid)
+    }
+
+    fun movePos(pos: Pos, dir: Dir) {
+        val moveChar = atPos(pos)
+        check(moveChar != null) { "Trying to move a empty place" }
+        grid[pos.y][pos.x] = '.'
+        val newPos = pos.moveDir(dir)
+        grid[newPos.y][newPos.x] = moveChar
     }
 
     fun findAll(findChar: Char): MutableSet<Pos> = grid.flatMapIndexed() { y, row ->

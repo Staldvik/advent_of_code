@@ -58,14 +58,11 @@ fun main() {
 
         fun countPerimeterEdges(pos: Pos) = Dir.cardinalDirs.count { map.atPos(pos.moveDir(it)) != map.atPos(pos) }
 
-        return charRegions.entries.sumOf { (char, regions) ->
-            regions.println(char.toString())
-            val charRegionResult = regions.sumOf { region ->
+        return charRegions.values.sumOf { regions ->
+            regions.sumOf { region ->
                 val perimeterEdges = region.sumOf { countPerimeterEdges(it) }
-                println("$char: ${region.count()} * $perimeterEdges")
                 perimeterEdges * region.count()
             }
-            charRegionResult
         }
     }
 
@@ -84,28 +81,25 @@ fun main() {
         fun countRegionSides(region: Set<Pos>): Int {
             var sides = 0;
 
-            val allPosWithEdges =
-                region.flatMap { pos ->
-                    val posEdges = Dir.cardinalDirs.filterNot { region.contains(pos.moveDir(it)) }
-                    posEdges.map { Pair(pos, it) }
-                }
-
-            map.printWith(allPosWithEdges.map { it.first })
+            val allPosWithEdges = region.flatMap { pos ->
+                val posEdges = Dir.cardinalDirs.filterNot { region.contains(pos.moveDir(it)) }
+                posEdges.map { Pair(pos, it) }
+            }
 
             val seenY: MutableSet<Pair<Int, Dir>> = mutableSetOf()
             val seenX: MutableSet<Pair<Int, Dir>> = mutableSetOf()
 
             allPosWithEdges.forEach { (pos, edge) ->
                 /** Left or right */
-                val isHorizontalEdge = Dir.horizontalDirs.contains(edge)
+                val isHorizontalEdge = Dir.verticalDirs.contains(edge)
 
                 /** Up or down */
-                val isVerticalEdge = Dir.verticalDirs.contains(edge)
+                val isVerticalEdge = Dir.horizontalDirs.contains(edge)
 
                 if (isHorizontalEdge && seenX.contains(Pair(pos.x, edge))) return@forEach
                 if (isVerticalEdge && seenY.contains(Pair(pos.y, edge))) return@forEach
 
-                // Find all pos that share edge. Todo: could be a fun when statement
+                // Find all pos that share edge.
                 val sameLine = allPosWithEdges.filter {
                     when {
                         edge != it.second -> false
@@ -114,7 +108,6 @@ fun main() {
                         else -> false
                     }
                 }.map { it.first }.sortedBy { if (isVerticalEdge) it.y else it.x }
-
 
                 // Find a way to filter out the ones that are contiguous
                 var previousPos: Pos? = null
@@ -148,9 +141,6 @@ fun main() {
                     error("Should not be reachable")
                 }
 
-                sameLine.println("$pos $edge same line as")
-                separateEdges.println("giving")
-
                 sides += separateEdges
 
                 // When we reach this point, assume we have handled this entire line
@@ -158,6 +148,7 @@ fun main() {
                 if (isVerticalEdge) seenY.add(Pair(pos.y, edge))
             }
 
+            check(sides % 2 == 0) { "$sides" }
 
             return sides
         }
@@ -165,6 +156,7 @@ fun main() {
         return charRegions.entries.sumOf { (char, regions) ->
             val charRegionResult = regions.sumOf { region ->
                 val regionSides = countRegionSides(region)
+                check(regionSides % 2 == 0) { "$char not multiple: $regionSides" }
                 regionSides.println(char.toString())
                 println("${region.count()} * $regionSides")
                 regionSides * region.count()
@@ -185,5 +177,5 @@ fun main() {
     // Read the input from the `src/Day01.txt` file.
     val input = parseInput("input")
     part1(input).println("part1")
-    part2(input).println("part2") // 1007634 too high
+    part2(input).println("part2, lower than 1007634") // 1007634 too high
 }

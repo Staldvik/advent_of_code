@@ -33,16 +33,22 @@ fun main() {
         return machines.sumOf { machine ->
             var machinePos = Pos(0, 0)
 
-            // Try to find as many buttonB-presses
+            // Try to find as many buttonB-presses as possible
             val buttonBPresses = (0..100).findLast { pressAmount ->
                 val newPos = machinePos.moveDir(machine.buttonB, pressAmount)
-                if (newPos == machine.goal) return@findLast true
 
                 val goalDist = newPos.getDistTo(machine.goal)
+
+                if (goalDist.dy < 0 || goalDist.dx < 0) return@findLast false
+
                 val goalReachableWithButtonA =
                     goalDist.dy % machine.buttonA.dy == 0 && goalDist.dx % machine.buttonA.dx == 0
 
-                if (goalReachableWithButtonA) {
+                val reachableWithSameClicks = (0..100).any {
+                    goalDist.dy / machine.buttonA.dy == goalDist.dx / machine.buttonA.dx
+                }
+
+                if (goalReachableWithButtonA && reachableWithSameClicks) {
                     machinePos = machinePos.moveDir(machine.buttonB, pressAmount)
                     true
                 } else {
@@ -55,17 +61,18 @@ fun main() {
                 return@sumOf 0
             }
 
-            // TODO: We can compute this without iteration, but should be correct no?
+            // TODO: We can compute this without iteration, but this should be correct no?
             val buttonAPresses = (0..100).find { pressAmount ->
                 val newPos = machinePos.moveDir(machine.buttonA, pressAmount)
                 newPos == machine.goal
             }
 
-            if (buttonAPresses == null) return@sumOf 0
-
+            if (buttonAPresses == null) {
+                println("$machinePos ${machinePos.getDistTo(machine.goal)} ${machine.buttonA}")
+                return@sumOf 0
+            }
 
             println("$machine: $buttonAPresses and $buttonBPresses")
-
 
             buttonAPresses * 3 + buttonBPresses * 1
         }
@@ -84,6 +91,6 @@ fun main() {
 
     // Read the input from the `src/Day01.txt` file.
     val input = readInput("input")
-    part1(input).println("part1 expected higher than 26727") // 26727 too low
+    part1(input).println("part1 expected higher than 31016") // 26727 too low // 31016 too low
     part2(input).println("part2")
 }
