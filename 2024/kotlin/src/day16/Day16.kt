@@ -10,9 +10,12 @@ import java.util.*
 
 fun main() {
     val part1Expected = 7036
-    val part2Expected = 1
+    val part2Expected = 45
 
-    fun h(pos: Pos) = 0 // todo: This probably needs to include cost of turning hehe
+    fun h(pos: Pos, goal: Pos): Int {
+        val distToGoal = pos.getDistTo(goal)
+        return distToGoal.dx + distToGoal.dy
+    }
 
     fun reconstructPath(cameFrom: Map<Pos, Pos>, goal: Pos): List<Pos> {
         var current = goal
@@ -25,7 +28,9 @@ fun main() {
     }
 
     // Shameless implementation of the wiki pseudo… Every year I have to do this 🙄
-    fun aStar(start: Pos, goal: Pos, maze: Grid): Pair<Int?, List<Pos>> {
+    fun aStar(start: Pos, goal: Pos, maze: Grid): List<Pair<Int, List<Pos>>> {
+        val result = mutableListOf<Pair<Int, List<Pos>>>()
+
         /** Discovered nodes that may need to be checked out */
         val openSet = mutableSetOf<Pair<Pos, Dir>>()
         openSet.add(Pair(start, Dir.RIGHT))
@@ -45,24 +50,23 @@ fun main() {
         fScore[start] = 0
 
         while (openSet.isNotEmpty()) {
-            val current = openSet.minBy { fScore[it.first]!! }
+            val current = openSet.minBy { fScore.getOrDefault(it.first, Int.MAX_VALUE) }
             val (currentPos, currentDir) = current
-            if (currentPos == goal) return Pair(gScore[goal], reconstructPath(cameFrom, goal))
+            if (currentPos == goal) result.add(Pair(gScore[goal]!!, reconstructPath(cameFrom, goal)))
 
             openSet.remove(current)
             Dir.cardinalDirs.forEach { newDir ->
-                // Maybe more correct to give it Infinite cost?
                 if (maze.atPos(currentPos.moveDir(newDir)) == '#') return@forEach
 
                 val neighbor = currentPos.moveDir(newDir)
                 val costToNode = if (newDir == currentDir) 1 else 1001
                 val tentativeScore = gScore.getOrDefault(currentPos, Int.MAX_VALUE) + costToNode
 
-                if (tentativeScore < gScore.getOrDefault(neighbor, Int.MAX_VALUE)) {
-                    // This path to neighbor is better than any previous one. Record it
+                if (tentativeScore <= gScore.getOrDefault(neighbor, Int.MAX_VALUE)) {
+                    // This path to neighbor is better or equal to previous one. Record it
                     cameFrom[neighbor] = currentPos
                     gScore[neighbor] = tentativeScore
-                    fScore[neighbor] = tentativeScore + h(neighbor)
+                    fScore[neighbor] = tentativeScore + h(neighbor, goal)
 
                     if (!openSet.contains(Pair(neighbor, newDir))) {
                         openSet.add(Pair(neighbor, newDir))
@@ -71,7 +75,7 @@ fun main() {
             }
         }
 
-        error("Fail!")
+        return result
     }
 
     fun part1(input: List<String>): Int {
@@ -80,15 +84,29 @@ fun main() {
         val start = maze.getCharPos('S')
         val goal = maze.getCharPos('E')
 
-        val (cost, path) = aStar(start, goal, maze)
+        val (cost, path) = aStar(start, goal, maze).first()
         path.println("Path with cost $cost")
         maze.printWith(path, '$')
 
-        return cost ?: 2
+        return cost
     }
 
     fun part2(input: List<String>): Int {
-        return 1
+        val maze = Grid.fromInput(input)
+
+        val start = maze.getCharPos('S')
+        val goal = maze.getCharPos('E')
+
+        val result = aStar(start, goal, maze)
+
+        for ((cost, path) in result) {
+            println("Path with cost $cost")
+            maze.printWith(path, 'Å')
+        }
+
+
+        result.println("Result")
+        return result.flatMap { it.second.toSet() }.toSet().count()
     }
 
     // Or read a large test input from the `src/Day01_test.txt` file:
@@ -101,7 +119,6 @@ fun main() {
 
     // Read the input from the `src/Day01.txt` file.
     val input = parseInput("input")
-    println("Starting part 1")
     part1(input).println("part1")
 
     val part2Result = part2(testInput)
