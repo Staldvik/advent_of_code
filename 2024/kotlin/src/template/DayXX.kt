@@ -20,11 +20,13 @@ fun main() {
     val testInput = parseInput("test")
     val part1Result = part1(testInput)
     check(part1Result == part1Expected) { "expected $part1Expected, got $part1Result" }
-    val part2Result = part1(testInput)
-    check(part2Result == part2Expected) { "expected $part2Expected, got $part2Result" }
 
     // Read the input from the `src/Day01.txt` file.
     val input = parseInput("input")
     part1(input).println("part1")
+
+    val part2Result = part2(testInput)
+    check(part2Result == part2Expected) { "expected $part2Expected, got $part2Result" }
+
     part2(input).println("part2")
 }

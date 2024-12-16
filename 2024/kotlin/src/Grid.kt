@@ -100,13 +100,25 @@ class Grid(val grid: List<MutableList<Char>>) {
         }
     }
 
-    fun printWith(positions: List<Pos>) {
+    fun printWithOnly(positions: List<Pos>) {
         kotlin.io.println()
         grid.forEachIndexed { y, row ->
             val newRow = row.mapIndexed { x, char ->
                 val pos = Pos(y, x)
                 if (positions.contains(pos)) char
                 else '·'
+            }
+            kotlin.io.println(newRow.joinToString(""))
+        }
+    }
+
+    fun printWith(positions: List<Pos>, printChar: Char) {
+        kotlin.io.println()
+        grid.forEachIndexed { y, row ->
+            val newRow = row.mapIndexed { x, char ->
+                val pos = Pos(y, x)
+                if (positions.contains(pos)) printChar
+                else char
             }
             kotlin.io.println(newRow.joinToString(""))
         }
