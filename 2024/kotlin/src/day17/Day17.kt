@@ -4,6 +4,32 @@ import println
 import readInput
 import kotlin.math.pow
 
+data class Registers(var A: Long = 0, var B: Long = 0, var C: Long = 0) {
+    companion object {
+        fun from(input: Map<Char, Int>): Registers {
+            throw NotImplementedError("Overloading could be nice instead of long method names?")
+        }
+
+        fun from(list: List<String>): Registers {
+            val registers = Registers()
+            list.forEach { line ->
+                val (registerName, value) = Regex("""Register ([ABC]): (\d+)""").find(line)?.destructured
+                    ?: error("Unable to parse $line")
+                val registerChar = registerName.first()
+                require(registerChar in 'A'..'C') { "Failed parsing, found unsupported register: $registerChar" }
+
+                val registerValue = value.toLong()
+                when (registerChar) {
+                    'A' -> registers.A = registerValue
+                    'B' -> registers.B = registerValue
+                    'C' -> registers.C = registerValue
+                }
+            }
+            return registers
+        }
+    }
+}
+
 data class OperationOutput(val out: Int? = null, val newPointer: Int? = null)
 
 fun main() {
@@ -13,54 +39,42 @@ fun main() {
 
     fun part1(input: String): String {
         println()
-        val (registerList, instructionsString) = input.split("\n\n")
-        val registers = registerList.lines().associate {
-            val (registerName, value) = Regex("""Register (\w): (\d+)""").find(it)!!.destructured
-            Pair(registerName.first(), value.toLong())
-        }.toMutableMap()
-
-        fun getRegister(char: Char) = when (char) {
-            in registers -> registers[char]!!
-            else -> error("$char not found in registers $registers")
-        }
+        val (registersString, instructionsString) = input.split("\n\n")
+        val registers = Registers.from(registersString.lines())
 
         registers.println("Registers")
         instructionsString.println("Instructions")
 
-        fun getCombo(operand: Int) = when (operand) {
+        fun getCombo(operand: Int): Long = when (operand) {
             in 0..3 -> operand.toLong()
-            4 -> getRegister('A')
-            5 -> getRegister('B')
-            6 -> getRegister('C')
+            4 -> registers.A
+            5 -> registers.B
+            6 -> registers.C
             7 -> throw IllegalArgumentException("7 is reserved, shouldn't have shown up as combo")
             else -> error("Unknown operand $operand")
         }
 
-        /** Might return new pointer location */
         fun runOperand(opcode: Int, operand: Int): OperationOutput? {
             when (opcode) {
                 0 -> {
-                    registers['A'] = getRegister('A').div(2f.pow(operand)).toLong()
+                    registers.A = registers.A.div(2f.pow(operand)).toLong()
                 }
 
                 1 -> {
-                    registers['B'] = getRegister('B').xor(operand.toLong())
+                    registers.B = registers.B.xor(operand.toLong())
                 }
 
                 2 -> {
-                    val combo = getCombo(operand)
-                    val result = combo.mod(8)
-                    registers['B'] = result.toLong()
+                    registers.B = getCombo(operand).mod(8).toLong()
                 }
 
                 3 -> {
-                    val a = registers['A']
-                    if (a == 0L) return null
-                    return OperationOutput(newPointer = operand)
+                    return if (registers.A == 0L) null
+                    else OperationOutput(newPointer = operand)
                 }
 
                 4 -> {
-                    registers['B'] = getRegister('B').xor(getRegister('C'))
+                    registers.B = registers.B.xor(registers.C)
                 }
 
                 5 -> {
@@ -68,11 +82,11 @@ fun main() {
                 }
 
                 6 -> {
-                    registers['B'] = getRegister('A').div(2f.pow(operand)).toLong()
+                    registers.B = registers.A.div(2f.pow(operand)).toLong()
                 }
 
                 7 -> {
-                    registers['C'] = getRegister('A').div(2f.pow(operand)).toLong()
+                    registers.C = registers.A.div(2f.pow(operand)).toLong()
                 }
 
             }
@@ -86,8 +100,8 @@ fun main() {
             val (opcode, operand) = instructionPairs.getOrNull(pointer) ?: break
             val output = runOperand(opcode, operand)
             if (output?.out != null) result.add(output.out)
-            if (output?.newPointer != null) pointer = output.newPointer
-            else pointer += 2
+
+            pointer = output?.newPointer ?: (pointer + 2)
         }
 
         println("Program finished, registers are now $registers")
