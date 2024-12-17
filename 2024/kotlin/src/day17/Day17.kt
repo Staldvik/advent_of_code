@@ -19,14 +19,19 @@ fun main() {
             Pair(registerName.first(), value.toLong())
         }.toMutableMap()
 
+        fun getRegister(char: Char) = when (char) {
+            in registers -> registers[char]!!
+            else -> error("$char not found in registers $registers")
+        }
+
         registers.println("Registers")
         instructionsString.println("Instructions")
 
         fun getCombo(operand: Int) = when (operand) {
             in 0..3 -> operand.toLong()
-            4 -> registers['A']!!
-            5 -> registers['B']!!
-            6 -> registers['C']!!
+            4 -> getRegister('A')
+            5 -> getRegister('B')
+            6 -> getRegister('C')
             7 -> throw IllegalArgumentException("7 is reserved, shouldn't have shown up as combo")
             else -> error("Unknown operand $operand")
         }
@@ -35,11 +40,11 @@ fun main() {
         fun runOperand(opcode: Int, operand: Int): OperationOutput? {
             when (opcode) {
                 0 -> {
-                    registers['A'] = registers['A']!!.div((2f).pow(operand)).toLong()
+                    registers['A'] = getRegister('A').div(2f.pow(operand)).toLong()
                 }
 
                 1 -> {
-                    registers['B'] = registers['B']!!.xor(operand.toLong())
+                    registers['B'] = getRegister('B').xor(operand.toLong())
                 }
 
                 2 -> {
@@ -55,7 +60,7 @@ fun main() {
                 }
 
                 4 -> {
-                    registers['B'] = registers['B']!!.xor(registers['C']!!)
+                    registers['B'] = getRegister('B').xor(getRegister('C'))
                 }
 
                 5 -> {
@@ -63,13 +68,11 @@ fun main() {
                 }
 
                 6 -> {
-                    val result = registers['A']!!.div((2f).pow(operand))
-                    registers['B'] = result.toLong()
+                    registers['B'] = getRegister('A').div(2f.pow(operand)).toLong()
                 }
 
                 7 -> {
-                    val result = registers['A']!!.div((2f).pow(operand))
-                    registers['C'] = result.toLong()
+                    registers['C'] = getRegister('A').div(2f.pow(operand)).toLong()
                 }
 
             }
