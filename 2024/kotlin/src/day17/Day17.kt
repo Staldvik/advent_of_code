@@ -32,19 +32,17 @@ data class Registers(var A: Long = 0, var B: Long = 0, var C: Long = 0) {
 
 data class OperationOutput(val out: Int? = null, val newPointer: Int? = null)
 
-fun main() {
-    val part1Expected = "4,6,3,5,6,3,5,2,1,0"
-    val part2Expected = 1
+class Computer(private val registers: Registers, private val instructions: List<Int>) {
+    companion object {
+        fun fromInput(input: String): Computer {
+            val (registersString, instructionsString) = input.split("\n\n")
+            val registers = Registers.from(registersString.lines())
+            val instructions = instructionsString.split("Program: ").last().split(",").map { it.toInt() }
+            return Computer(registers, instructions)
+        }
+    }
 
-
-    fun part1(input: String): String {
-        println()
-        val (registersString, instructionsString) = input.split("\n\n")
-        val registers = Registers.from(registersString.lines())
-
-        registers.println("Registers")
-        instructionsString.println("Instructions")
-
+    private fun runOperand(opcode: Int, operand: Int): OperationOutput? {
         fun getCombo(operand: Int): Long = when (operand) {
             in 0..3 -> operand.toLong()
             4 -> registers.A
@@ -54,58 +52,68 @@ fun main() {
             else -> error("Unknown operand $operand")
         }
 
-        fun runOperand(opcode: Int, operand: Int): OperationOutput? {
-            when (opcode) {
-                0 -> {
-                    registers.A = registers.A.div(2f.pow(operand)).toLong()
-                }
-
-                1 -> {
-                    registers.B = registers.B.xor(operand.toLong())
-                }
-
-                2 -> {
-                    registers.B = getCombo(operand).mod(8).toLong()
-                }
-
-                3 -> {
-                    return if (registers.A == 0L) null
-                    else OperationOutput(newPointer = operand)
-                }
-
-                4 -> {
-                    registers.B = registers.B.xor(registers.C)
-                }
-
-                5 -> {
-                    return OperationOutput(out = getCombo(operand).mod(8))
-                }
-
-                6 -> {
-                    registers.B = registers.A.div(2f.pow(operand)).toLong()
-                }
-
-                7 -> {
-                    registers.C = registers.A.div(2f.pow(operand)).toLong()
-                }
-
+        when (opcode) {
+            0 -> {
+                registers.A = registers.A.div(2f.pow(operand)).toLong()
             }
-            return null
-        }
 
-        val instructionPairs = instructionsString.split("Program: ").last().split(",").map { it.toInt() }.zipWithNext()
+            1 -> {
+                registers.B = registers.B.xor(operand.toLong())
+            }
+
+            2 -> {
+                registers.B = getCombo(operand).mod(8).toLong()
+            }
+
+            3 -> {
+                return if (registers.A == 0L) null
+                else OperationOutput(newPointer = operand)
+            }
+
+            4 -> {
+                registers.B = registers.B.xor(registers.C)
+            }
+
+            5 -> {
+                return OperationOutput(out = getCombo(operand).mod(8))
+            }
+
+            6 -> {
+                registers.B = registers.A.div(2f.pow(operand)).toLong()
+            }
+
+            7 -> {
+                registers.C = registers.A.div(2f.pow(operand)).toLong()
+            }
+
+        }
+        return null
+    }
+
+    fun run(): String {
+        val instructionPairs = instructions.zipWithNext()
         var pointer = 0
-        val result = mutableListOf<Int>()
+        val output = mutableListOf<Int>()
         while (true) {
+            require(pointer % 2 == 0) { "Invalid pointer state!" }
             val (opcode, operand) = instructionPairs.getOrNull(pointer) ?: break
-            val output = runOperand(opcode, operand)
-            if (output?.out != null) result.add(output.out)
-
-            pointer = output?.newPointer ?: (pointer + 2)
+            val result = runOperand(opcode, operand)
+            if (result?.out != null) output.add(result.out)
+            pointer = result?.newPointer ?: (pointer + 2)
         }
+        return output.joinToString(",")
+    }
+}
 
-        println("Program finished, registers are now $registers")
-        return result.joinToString(",")
+fun main() {
+    val part1Expected = "4,6,3,5,6,3,5,2,1,0"
+    val part2Expected = 1
+
+
+    fun part1(input: String): String {
+        val computer = Computer.fromInput(input)
+        val output = computer.run()
+        return output
     }
 
 
