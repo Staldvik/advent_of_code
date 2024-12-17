@@ -43,7 +43,7 @@ class Computer(private val registers: Registers, private val instructions: List<
     }
 
     private fun runOperand(opcode: Int, operand: Int): OperationOutput? {
-        fun getCombo(operand: Int): Long = when (operand) {
+        fun getCombo(): Long = when (operand) {
             in 0..3 -> operand.toLong()
             4 -> registers.A
             5 -> registers.B
@@ -52,40 +52,21 @@ class Computer(private val registers: Registers, private val instructions: List<
             else -> error("Unknown operand $operand")
         }
 
+        fun getLiteral(): Long = operand.toLong()
+
         when (opcode) {
-            0 -> {
-                registers.A = registers.A.div(2f.pow(operand)).toLong()
+            0 -> registers.A = registers.A.div(2.0.pow(getCombo().toDouble())).toLong()
+            1 -> registers.B = registers.B.xor(getLiteral())
+            2 -> registers.B = getCombo().mod(8).toLong()
+            3 -> return when {
+                registers.A == 0L -> null
+                else -> OperationOutput(newPointer = operand)
             }
 
-            1 -> {
-                registers.B = registers.B.xor(operand.toLong())
-            }
-
-            2 -> {
-                registers.B = getCombo(operand).mod(8).toLong()
-            }
-
-            3 -> {
-                return if (registers.A == 0L) null
-                else OperationOutput(newPointer = operand)
-            }
-
-            4 -> {
-                registers.B = registers.B.xor(registers.C)
-            }
-
-            5 -> {
-                return OperationOutput(out = getCombo(operand).mod(8))
-            }
-
-            6 -> {
-                registers.B = registers.A.div(2f.pow(operand)).toLong()
-            }
-
-            7 -> {
-                registers.C = registers.A.div(2f.pow(operand)).toLong()
-            }
-
+            4 -> registers.B = registers.B.xor(registers.C)
+            5 -> return OperationOutput(out = getCombo().mod(8))
+            6 -> registers.B = registers.A.div(2.0.pow(getCombo().toDouble())).toLong()
+            7 -> registers.C = registers.A.div(2.0.pow(getCombo().toDouble())).toLong()
         }
         return null
     }
