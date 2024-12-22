@@ -82,7 +82,8 @@ data class Pos(val y: Int, val x: Int) {
 class Grid(val grid: List<MutableList<Char>>) {
     companion object {
         fun fromInput(input: List<String>) = Grid(input.map { it.toCharArray().toMutableList() })
-        fun ofSize(width: Int, height: Int) = Grid(List(height) { MutableList(width) { 'x' } })
+        fun ofSize(width: Int, height: Int, emptyChar: Char = '.') =
+            Grid(List(height) { MutableList(width) { emptyChar } })
     }
 
     fun print() {
@@ -145,10 +146,14 @@ class Grid(val grid: List<MutableList<Char>>) {
 
     fun atPos(pos: Pos) = this.grid.getOrNull(pos.y)?.getOrNull(pos.x)
 
-    fun setAtPos(pos: Pos, char: Char): Grid {
+    fun newWithPosChar(pos: Pos, char: Char): Grid {
         val newGrid = grid.map { it.toMutableList() }.toMutableList()
         newGrid[pos.y][pos.x] = char
         return Grid(newGrid)
+    }
+
+    fun setAtPos(pos: Pos, char: Char) {
+        grid[pos.y][pos.x] = char
     }
 
     fun movePos(pos: Pos, dir: Dir) {

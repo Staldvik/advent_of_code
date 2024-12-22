@@ -71,6 +71,35 @@ class Computer(private val registers: Registers, private val instructions: List<
         return null
     }
 
+    private fun reverseOperand(opcode: Int, operand: Int): OperationOutput? {
+        fun getCombo(): Long = when (operand) {
+            in 0..3 -> operand.toLong()
+            4 -> registers.A
+            5 -> registers.B
+            6 -> registers.C
+            7 -> throw IllegalArgumentException("7 is reserved, shouldn't have shown up as combo")
+            else -> error("Unknown operand $operand")
+        }
+
+        fun getLiteral(): Long = operand.toLong()
+
+        when (opcode) {
+            0 -> registers.A = registers.A.div(2.0.pow(getCombo().toDouble())).toLong()
+            1 -> registers.B = registers.B.xor(getLiteral())
+            2 -> registers.B = getCombo().mod(8).toLong()
+            3 -> return when {
+                registers.A == 0L -> null
+                else -> OperationOutput(newPointer = operand)
+            }
+
+            4 -> registers.B = registers.B.xor(registers.C)
+            5 -> return OperationOutput(out = getCombo().mod(8))
+            6 -> registers.B = registers.A.div(2.0.pow(getCombo().toDouble())).toLong()
+            7 -> registers.C = registers.A.div(2.0.pow(getCombo().toDouble())).toLong()
+        }
+        return null
+    }
+
     fun run(): String {
         val instructionPairs = instructions.zipWithNext()
         var pointer = 0
@@ -83,6 +112,35 @@ class Computer(private val registers: Registers, private val instructions: List<
             pointer = result?.newPointer ?: (pointer + 2)
         }
         return output.joinToString(",")
+    }
+
+    fun part2(): Long {
+        /**
+         * Plan: Run the instructions in reverse and find way it could have been printed.
+         * Abort run if state maes it impossible. Ugh I guess another round of recursion?
+         */
+
+        for (output in instructions.reversed().iterator()) {
+            output.println("Trying to get output")
+
+            when (output) {
+                0 -> {
+                    // just find the first and worry about others later
+
+                    // This is the remainder after mod(8), so can't be a literal operand
+                    // that means it's one of the registers
+
+                    
+                }
+
+                else -> throw NotImplementedError("Not implemented for $output")
+
+
+            }
+
+        }
+
+        return 0L
     }
 }
 
@@ -98,8 +156,10 @@ fun main() {
     }
 
 
-    fun part2(input: String): Int {
-        return 1
+    fun part2(input: String): Long {
+        val computer = Computer.fromInput(input)
+        val calculatedA = computer.part2()
+        return calculatedA
     }
 
     part1(readInput("simple-test")).println("Part 1 simple test")
@@ -113,8 +173,8 @@ fun main() {
     val input = readInput("input")
     part1(input).println("part1 (is not 1,0,4,2,7,4,1,7,2)") // Not 1,0,4,2,7,4,1,7,2
 
-    val part2Result = part2(testInput)
-    check(part2Result == part2Expected) { "expected $part2Expected, got $part2Result" }
+    val part2Result = part2(readInput("simple-test-2"))
+    check(part2Result == 117440L) { "expected $part2Expected, got $part2Result" }
 
     part2(input).println("part2")
 }

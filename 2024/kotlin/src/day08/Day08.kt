@@ -24,7 +24,7 @@ fun main() {
             }
         }.toSet()
 
-        antiNodes.filter { map.atPos(it) == '.' }.forEach { map = map.setAtPos(it, '#') }
+        antiNodes.filter { map.atPos(it) == '.' }.forEach { map = map.newWithPosChar(it, '#') }
 
         map.print()
 
@@ -44,7 +44,7 @@ fun main() {
             }
         }.toSet()
 
-        antiNodes.filter { map.atPos(it) == '.' }.forEach { map = map.setAtPos(it, '#') }
+        antiNodes.filter { map.atPos(it) == '.' }.forEach { map = map.newWithPosChar(it, '#') }
 
         map.print()
 

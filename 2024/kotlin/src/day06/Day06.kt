@@ -40,7 +40,7 @@ fun main() {
         val guardRoute = getGuardRoute(room)
 
         val causesLoop = guardRoute.filter { testIntersection ->
-            val testRoom = room.setAtPos(testIntersection, '#')
+            val testRoom = room.newWithPosChar(testIntersection, '#')
 
             var guardPos = room.getCharPos('^')
             var guardDir = Dir(-1, 0)
