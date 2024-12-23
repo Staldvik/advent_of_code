@@ -131,7 +131,7 @@ class Grid(val grid: List<MutableList<Char>>) {
             val x = row.indexOf(char)
             if (x != -1) return Pos(y, x)
         }
-        throw IllegalStateException("No start character '^' found in grid")
+        throw IllegalStateException("Char $char not found in grid")
     }
 
     fun getChars(): MutableMap<Char, MutableSet<Pos>> {
@@ -169,4 +169,55 @@ class Grid(val grid: List<MutableList<Char>>) {
             if (char == findChar) Pos(y, x) else null
         }.filterNotNull()
     }.toMutableSet()
+
+    fun shortestPath(from: Pos, to: Pos): Set<Pos> {
+        val distances = mutableMapOf<Pos, Int>()
+        val parent = mutableMapOf<Pos, Pos>()
+        val unvisited = mutableSetOf<Pos>()
+
+        // Initialize distances
+        for (y in grid.indices) {
+            for (x in grid[0].indices) {
+                val pos = Pos(y, x)
+                if (grid[y][x] != '#') {
+                    distances[pos] = Int.MAX_VALUE
+                    unvisited.add(pos)
+                }
+            }
+        }
+        distances[from] = 0
+
+        while (unvisited.isNotEmpty()) {
+            val current = unvisited.minByOrNull { distances[it] ?: Int.MAX_VALUE }
+                ?: break
+
+            if (current == to) break
+
+            unvisited.remove(current)
+            val currentDist = distances[current] ?: continue
+
+            for (dir in Dir.cardinalDirs) {
+                val next = current.moveDir(dir)
+
+                if (next.isWithin(this) && atPos(next) != '#' && next in unvisited) {
+                    val newDist = currentDist + 1
+                    if (newDist < (distances[next] ?: Int.MAX_VALUE)) {
+                        distances[next] = newDist
+                        parent[next] = current
+                    }
+                }
+            }
+        }
+
+        if (to !in parent && from != to) return emptySet()
+
+        val path = mutableSetOf<Pos>()
+        var current = to
+        while (current != from) {
+            path.add(current)
+            current = parent[current]!!
+        }
+        path.add(from)
+        return path.reversed().toSet()
+    }
 }
