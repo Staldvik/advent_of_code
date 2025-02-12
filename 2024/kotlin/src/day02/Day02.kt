@@ -1,8 +1,8 @@
 package day02
 
-import exceptIndex
-import parseInput
-import println
+import utils.exceptIndex
+import utils.parseInput
+import utils.println
 import kotlin.math.abs
 
 fun main() {

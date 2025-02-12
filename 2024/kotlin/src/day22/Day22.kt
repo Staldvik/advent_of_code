@@ -1,7 +1,7 @@
 package day22
 
-import parseInput
-import println
+import utils.parseInput
+import utils.println
 
 
 fun main() {

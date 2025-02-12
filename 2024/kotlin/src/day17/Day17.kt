@@ -1,7 +1,7 @@
 package day17
 
-import println
-import readInput
+import utils.println
+import utils.readInput
 import kotlin.math.pow
 
 data class Registers(var A: Long = 0, var B: Long = 0, var C: Long = 0) {
@@ -130,7 +130,7 @@ class Computer(private val registers: Registers, private val instructions: List<
                     // This is the remainder after mod(8), so can't be a literal operand
                     // that means it's one of the registers
 
-                    
+
                 }
 
                 else -> throw NotImplementedError("Not implemented for $output")

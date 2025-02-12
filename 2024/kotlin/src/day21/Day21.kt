@@ -1,9 +1,9 @@
 package day21
 
-import Dir
-import Grid
-import parseInput
-import println
+import utils.Dir
+import utils.Grid
+import utils.parseInput
+import utils.println
 
 /**
  * ```
@@ -42,7 +42,7 @@ open class InputDevice(val keypad: Grid) {
         currentHover = newPos
 
         return paths.map { path ->
-            path.windowed(2).map { (it, next) ->
+            paths.windowed(2).map { (it, next) ->
                 when (it.getDirTo(next)) {
                     Dir.UP -> '^'
                     Dir.RIGHT -> '>'
@@ -101,7 +101,7 @@ fun main() {
 //        }
 
         fun getInputsFor(input: String, inputDevice: InputDevice) {
-            
+
         }
 
         getInputsFor(input[0], door)

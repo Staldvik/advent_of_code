@@ -1,7 +1,7 @@
 package day07
 
-import parseInput
-import println
+import utils.parseInput
+import utils.println
 
 enum class Operator {
     Plus,

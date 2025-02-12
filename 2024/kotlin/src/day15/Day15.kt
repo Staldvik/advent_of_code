@@ -1,10 +1,10 @@
 package day15
 
-import Dir
-import Grid
-import Pos
-import println
-import readInput
+import utils.Dir
+import utils.Grid
+import utils.Pos
+import utils.println
+import utils.readInput
 
 
 fun main() {

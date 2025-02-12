@@ -1,9 +1,9 @@
 package day13
 
-import Dir
-import Pos
-import println
-import readInput
+import utils.Dir
+import utils.Pos
+import utils.println
+import utils.readInput
 
 data class Machine(val buttonA: Dir, val buttonB: Dir, val goal: Pos) {}
 

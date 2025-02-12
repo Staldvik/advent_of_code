@@ -1,7 +1,7 @@
 package day01
 
-import parseInput
-import println
+import utils.parseInput
+import utils.println
 import kotlin.math.abs
 
 

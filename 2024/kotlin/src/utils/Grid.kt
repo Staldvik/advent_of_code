@@ -1,3 +1,5 @@
+package utils
+
 data class Dir(val dy: Int, val dx: Int) {
     fun print() {
         when (this) {

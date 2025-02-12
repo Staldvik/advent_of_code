@@ -1,7 +1,7 @@
 package day19
 
-import println
-import readInput
+import utils.println
+import utils.readInput
 
 
 fun main() {
@@ -57,7 +57,7 @@ fun main() {
 
             return result
         }
-        
+
         fun buildDesign(design: String, towels: List<String>, result: MutableList<List<String>>): List<String>? {
             val currentDesign = towels.joinToString("")
             if (currentDesign == design) return towels

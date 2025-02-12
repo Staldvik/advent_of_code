@@ -1,9 +1,9 @@
 package day08
 
-import Dir
-import Grid
-import parseInput
-import println
+import utils.Dir
+import utils.Grid
+import utils.parseInput
+import utils.println
 
 
 fun main() {

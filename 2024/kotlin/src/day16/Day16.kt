@@ -1,10 +1,10 @@
 package day16
 
-import Dir
-import Grid
-import Pos
-import parseInput
-import println
+import utils.Dir
+import utils.Grid
+import utils.Pos
+import utils.parseInput
+import utils.println
 import java.util.*
 
 

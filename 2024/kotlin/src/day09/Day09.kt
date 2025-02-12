@@ -1,7 +1,7 @@
 package day09
 
-import parseInput
-import println
+import utils.parseInput
+import utils.println
 
 
 fun main() {

@@ -1,7 +1,7 @@
 package day11
 
-import parseInput
-import println
+import utils.parseInput
+import utils.println
 
 fun main() {
     val part1Expected = 55312
