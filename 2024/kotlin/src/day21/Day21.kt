@@ -2,52 +2,109 @@ package day21
 
 import Dir
 import Grid
-import Pos
 import parseInput
 import println
 
-class Keypad(val keypad: Grid) {
-    var current = keypad.getCharPos('A')
+/**
+ * ```
+ *     +---+---+
+ *     | ^ | A |
+ * +---+---+---+
+ * | < | v | > |
+ * +---+---+---+
+ * ```
+ */
+val directionalPad = listOf(" ^A", "<v>")
+
+/**
+ * ```
+ * +---+---+---+
+ * | 7 | 8 | 9 |
+ * +---+---+---+
+ * | 4 | 5 | 6 |
+ * +---+---+---+
+ * | 1 | 2 | 3 |
+ * +---+---+---+
+ *     | 0 | A |
+ *     +---+---+
+ *
+ * ```
+ */
+val numberPad = listOf("789", "456", "123", " 0A")
+
+open class InputDevice(val keypad: Grid) {
+    private var currentHover = keypad.getCharPos('A')
+
+    /** Will return the shortest paths taken to hover */
+    fun hoverChar(char: Char): List<String> {
+        val newPos = keypad.getCharPos(char)
+        val paths = keypad.shortestPath(currentHover, newPos)
+        currentHover = newPos
+
+        return paths.map { path ->
+            path.windowed(2).map { (it, next) ->
+                when (it.getDirTo(next)) {
+                    Dir.UP -> '^'
+                    Dir.RIGHT -> '>'
+                    Dir.DOWN -> 'v'
+                    Dir.LEFT -> '<'
+                    else -> error("${it.getDirTo(next)} not understandable")
+                }
+            }.joinToString("")
+        }
+    }
 }
 
-fun getRequiredInput(set: Set<Pos>): String {
-    return set.windowed(2).map { (it, next) ->
-        when (it.getDirTo(next)) {
-            Dir.UP -> '^'
-            Dir.RIGHT -> '>'
-            Dir.DOWN -> 'v'
-            Dir.LEFT -> '<'
-            else -> error("${it.getDirTo(next)} not understandable")
-        }
-    }.joinToString("")
-}
+class NumberPad : InputDevice(Grid.fromInput(numberPad))
+class DirectionalPad : InputDevice(Grid.fromInput(directionalPad))
 
 fun main() {
-    val part1Expected = 1
+    val part1Expected = 126384
     val part2Expected = 1
 
-
     fun part1(input: List<String>): Int {
-        val door = Keypad(Grid.fromInput(listOf("789", "456", "123", " 0A")))
-        val robot1 = Keypad(Grid.fromInput(listOf(" ^A", "<v>")))
-        val robot2 = Keypad(Grid.fromInput(listOf(" ^A", "<v>")))
-        val user = Keypad(Grid.fromInput(listOf(" ^A", "<v>")))
+        val door = NumberPad()
+        val robot = DirectionalPad()
+        val user = DirectionalPad()
 
-        door.keypad.shortestPath(Pos(3, 2), Pos(3, 1)).println("Shortest")
+        val link = linkedSetOf(door, robot, user)
 
-        val link = linkedSetOf(door, robot1, robot2, user)
+//        val test = input.map { line ->
+//            val userInput = link.scan(listOf(line)) { acc, inputDevice ->
+//                val commands = acc.flatMap { outputs ->
+//                    val result = outputs.map { output ->
+//                        val newPos = inputDevice.keypad.getCharPos(output)
+//                        val requiresInput =
+//                            inputDevice.keypad
+//                                .shortestPath(inputDevice.currentHover, newPos)
+//                                .map { getRequiredInput(it) + "A" }
+//                        inputDevice.currentHover = newPos
+//                        requiresInput
+//                    }
+//                    result.println("This is how it looks")
+//                    val combinations = result.fold(listOf("")) { acc, list ->
+//                        acc.flatMap { prefix -> list.map { prefix + it } }
+//                    }
+//                    combinations.println("This is the combinations")
+//
+//                    combinations
+//                }
+//                commands
+//            }
+//            Pair(line, userInput)
+//        }
+//
+//        return test.sumOf { (doorCode, commands) ->
+//            val numericPart = doorCode.filter { it.isDigit() }
+//            (numericPart.toInt() * commands.count()).println("${numericPart.toInt()} * ${commands.count()}")
+//            numericPart.toInt() * commands.count()
+//        }
 
-        val test = input.map { line ->
-            val commands = line.map { output ->
-                val newPos = door.keypad.getCharPos(output)
-                val requiresInput = door.keypad.shortestPath(door.current, newPos).let { getRequiredInput(it) }
-                door.current = newPos
-                requiresInput
-            }
-            commands.joinToString("A") + "A"
+        fun getInputsFor(input: String, inputDevice: InputDevice) {
+            
         }
 
-        test.println("Test")
+        getInputsFor(input[0], door)
 
         return 2
     }
@@ -56,9 +113,6 @@ fun main() {
         return 1
     }
 
-    part1(listOf("029A"))
-    error("no longer pls")
-
     // Or read a large test input from the `src/Day01_test.txt` file:
     val testInput = parseInput("test")
     val part1Result = part1(testInput)
@@ -66,7 +120,7 @@ fun main() {
 
     // Read the input from the `src/Day01.txt` file.
     val input = parseInput("input")
-    part1(input).println("part1")
+    part1(input).println("part1") // 253278 too high
 
     val part2Result = part2(testInput)
     check(part2Result == part2Expected) { "expected $part2Expected, got $part2Result" }
