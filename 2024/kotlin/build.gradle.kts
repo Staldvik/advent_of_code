@@ -1,5 +1,6 @@
 plugins {
     kotlin("jvm") version "2.1.0"
+    java
 }
 
 dependencies {
@@ -9,6 +10,7 @@ dependencies {
 sourceSets {
     main {
         kotlin.srcDir("src")
+        java.srcDir("src")
     }
 }
 
