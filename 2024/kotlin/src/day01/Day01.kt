@@ -27,16 +27,14 @@ fun main() {
     fun part2(input: List<String>): Int {
         val leftNumbers = input.map {
             it.split("   ").first().toInt()
-        }.sorted()
+        }
         val rightNumbers = input.map {
             it.split("   ").last().toInt()
-        }.sorted()
+        }
 
-        val pairs = leftNumbers.zip(rightNumbers)
-
-        return pairs.sumOf {
-            val appearances = rightNumbers.count { right -> it.first == right }
-            it.first * appearances
+        return leftNumbers.sumOf {
+            val appearances = rightNumbers.count { right -> it == right }
+            it * appearances
         }
     }
 
