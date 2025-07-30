@@ -1,0 +1,21 @@
+{
+  "name": "2021",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "bun --watch day$DAY/index.ts"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/double-ended-queue": "^2.1.7",
+    "@types/node": "^20.10.1",
+    "nodemon": "^3.0.1",
+    "ts-node": "^10.9.1"
+  },
+  "dependencies": {
+    "double-ended-queue": "^2.1.0-0",
+    "remeda": "^2.27.0"
+  }
+}
