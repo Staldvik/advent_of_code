@@ -18,7 +18,7 @@ export const testSolution = (
   if (result != answer) {
     console.error(`${solutionFn.name}: Expected ${answer}, got ${result}`);
   } else {
-    console.log("Test Success! Expected and got", result);
+    console.log(`${solutionFn.name}: Test Success! Expected and got ${result}`);
   }
 };
 
