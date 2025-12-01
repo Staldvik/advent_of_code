@@ -1,70 +1,80 @@
 package day01
 
 import utils.parseInput
-import utils.println
+
+class Dial(var pos: Int) {
+    fun turn(direction: Direction, ticks: Int) {
+        pos = when (direction) {
+            Direction.LEFT -> Math.floorMod(pos - ticks, 100)
+            Direction.RIGHT -> Math.floorMod(pos + ticks, 100)
+        }
+    }
+
+    /** Returns how many times it passed 0 (weird) */
+    fun turnWithTicks(direction: Direction, ticks: Int): Int {
+        val initialPos = pos;
+        turn(direction, ticks)
+        return when (direction) {
+            Direction.LEFT -> Math.floorDiv(initialPos - 1, 100) - Math.floorDiv(initialPos - ticks - 1, 100)
+            Direction.RIGHT -> Math.floorDiv(initialPos + ticks, 100) - Math.floorDiv(initialPos, 100)
+        }
+    }
+}
+
+enum class Direction {
+    RIGHT, LEFT;
+
+    companion object {
+        fun fromString(input: String): Direction {
+            return when (input) {
+                "R" -> RIGHT
+                "L" -> LEFT
+                else -> {
+                    throw Exception("Invalid direction $input")
+                }
+            }
+        }
+    }
+}
+
 
 fun main() {
     val part1Expected = 3
     val part2Expected = 6
 
     fun part1(input: List<String>): Int {
-        var pos = 50
-        var count = 0
-        input.forEach {
-            val direction = it.take(1)
+        val dial = Dial(50)
+        return input.count {
+            val direction = Direction.fromString(it.take(1))
             val ticks = it.drop(1).toInt()
 
-            if (direction == "R") {
-                pos += ticks
-            } else {
-                pos -= ticks
-            }
-
-            pos = Math.floorMod(pos, 100)
-
-            println("$direction $ticks gives $pos")
-
-            if (pos == 0) count++
+            dial.turn(direction, ticks)
+            return@count dial.pos == 0
         }
-        count.println("count")
-        return count
     }
 
     fun part2(input: List<String>): Int {
-        var pos = 50;
-        var count = 0;
-        input.forEach {
-            val direction = it.take(1)
-            val ticks = it.drop(1).toInt();
+        val dial = Dial(50)
+        return input.sumOf {
+            val direction = Direction.fromString(it.take(1))
+            val ticks = it.drop(1).toInt()
 
-            for (tick in 1..ticks) {
-                if (direction == "R") {
-                    pos += 1
-                } else {
-                    pos -= 1
-                }
-                if (pos % 100 == 0 && tick != ticks) {
-                    count++;
-                }
-            }
-
-            pos = Math.floorMod(pos, 100)
-            if (pos == 0) count++
-
-            println("$direction $ticks gives $pos")
-
+            return@sumOf dial.turnWithTicks(direction, ticks)
         }
-        count.println("count")
-        return count
+    }
+
+    fun testSolution(solver: (List<String>) -> Int, input: List<String>, expected: Int) {
+        val result = solver(input)
+        check(result == expected) { "Expected $expected but got $result" }
     }
 
     // Or read a large test input from the `src/Day01_test.txt` file:
     val testInput = parseInput("test")
-    //check(part1(testInput) == part1Expected)
-    check(part2(testInput) == part2Expected)
+    testSolution(::part1, testInput, part1Expected)
+    testSolution(::part2, testInput, part2Expected)
 
     // Read the input from the `src/Day01.txt` file.
     val input = parseInput("input")
-    part1(input).println("part1") // 461 too low
-    part2(input).println("part2") // 3390 too low // 6659 too low // 6698 too high
+    testSolution(::part1, input, 1152)
+    testSolution(::part2, input, 6671)
 }
