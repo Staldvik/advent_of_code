@@ -3,23 +3,6 @@ package day01
 import utils.parseInput
 import utils.println
 
-class Dial(var pos: Int) {
-    fun move(direction: String) {
-        when (direction) {
-            "R" -> {
-
-            }
-
-            "L" -> {
-
-            }
-
-            else -> throw IllegalArgumentException("Invalid Direction")
-        }
-    }
-}
-
-
 fun main() {
     val part1Expected = 3
     val part2Expected = 6
@@ -37,7 +20,7 @@ fun main() {
                 pos -= ticks
             }
 
-            pos %= 100
+            pos = Math.floorMod(pos, 100)
 
             println("$direction $ticks gives $pos")
 
@@ -54,16 +37,19 @@ fun main() {
             val direction = it.take(1)
             val ticks = it.drop(1).toInt();
 
-            if (direction == "R") {
-                pos += ticks
-            } else {
-                pos -= ticks
+            for (tick in 1..ticks) {
+                if (direction == "R") {
+                    pos += 1
+                } else {
+                    pos -= 1
+                }
+                if (pos % 100 == 0 && tick != ticks) {
+                    count++;
+                }
             }
 
-            if (pos > 99) count += pos.floorDiv( 100)
-            if (pos < 0) count += -pos.floorDiv( 100)
-
             pos = Math.floorMod(pos, 100)
+            if (pos == 0) count++
 
             println("$direction $ticks gives $pos")
 
@@ -80,5 +66,5 @@ fun main() {
     // Read the input from the `src/Day01.txt` file.
     val input = parseInput("input")
     part1(input).println("part1") // 461 too low
-    part2(input).println("part2") // 3390 too low // 6659 too low
+    part2(input).println("part2") // 3390 too low // 6659 too low // 6698 too high
 }
