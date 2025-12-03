@@ -14,38 +14,28 @@ fun main() {
         return Pair(max, index + afterIndex)
     }
 
-    fun parse(input: List<String>): MutableMap<Int, MutableList<Int>> {
-        var map = mutableMapOf<Int, MutableList<Int>>()
-        input.forEachIndexed { index, line ->
-            line.forEach { c ->
-                map.putIfAbsent(index, mutableListOf())
-                map[index]?.add(c.digitToInt())
-            }
-        }
-        return map
+    fun parse(input: List<String>): List<List<Int>> {
+        return input.map { line -> line.split("").map { ch -> ch.toInt() } }
     }
 
     fun part1(input: List<String>): Long {
-        var map = parse(input)
-
-
-        return map.values.sumOf { list ->
-            val (first, firstIndex) = biggestAfter(list, 0, list.size - 1)
-            val (second, secondIndex) = biggestAfter(list, firstIndex + 1, list.size)
+        val banks = parse(input)
+        return banks.sumOf { bank ->
+            val (first, firstIndex) = biggestAfter(bank, 0, bank.size - 1)
+            val (second, secondIndex) = biggestAfter(bank, firstIndex + 1, bank.size)
             "$first$second".toLong()
         }
     }
 
     fun part2(input: List<String>): Long {
-        val map = parse(input)
-
-        return map.values.sumOf { list ->
-            val (first, firstIndex) = biggestAfter(list, 0, list.size - 12)
+        val banks = parse(input)
+        return banks.sumOf { bank ->
+            val (first, firstIndex) = biggestAfter(bank, 0, bank.size - 12)
             var num = "$first"
 
             var prevIndex = firstIndex
             while (num.length < 12) {
-                val (next, nextIndex) = biggestAfter(list, prevIndex + 1, list.size - (12 - num.length - 1))
+                val (next, nextIndex) = biggestAfter(bank, prevIndex + 1, bank.size - (12 - num.length - 1))
                 num += next
                 prevIndex = nextIndex
             }
