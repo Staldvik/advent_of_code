@@ -69,7 +69,7 @@ fun main() {
     }
 
     // Or read a large test input from the `src/Day01_test.txt` file:
-    val testInput = parseInput("test")
+    val testInput = parseInput("example1")
     testSolution(::part1, testInput, part1Expected)
     testSolution(::part2, testInput, part2Expected)
 
