@@ -39,7 +39,7 @@ fun main() {
     }
 
     // Or read a large test input from the `src/Day01_test.txt` file:
-    val testInput = parseInput("test")
+    val testInput = parseInput("example1")
     check(part1(testInput) == part1Expected)
 
     val test2Input = parseInput("test2")

@@ -28,7 +28,7 @@ fun main() {
     }
 
     // Or read a large test input from the `src/Day01_test.txt` file:
-    val testInput = parseInput("test")
+    val testInput = parseInput("example1")
     val part1Result = part1(testInput)
     check(part1Result == 37327623L) { "expected $part1Expected, got $part1Result" }
 

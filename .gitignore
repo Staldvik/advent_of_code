@@ -2,6 +2,7 @@
 node_modules
 
 input.txt
+example*.txt
 
 # testing
 /coverage

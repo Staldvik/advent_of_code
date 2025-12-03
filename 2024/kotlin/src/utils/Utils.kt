@@ -1,5 +1,7 @@
 package utils
 
+import java.io.File
+import java.io.FileNotFoundException
 import java.math.BigInteger
 import java.security.MessageDigest
 import kotlin.io.path.Path
@@ -9,22 +11,16 @@ import kotlin.io.path.readText
  * Read input as single String
  */
 fun readInput(name: String): String {
-    val callerClass = Thread.currentThread().stackTrace[2].className
-    val packagePath = callerClass.replace('.', '/')
-        .substringBeforeLast('/')
-    val filePath = "src/$packagePath/$name.txt"
-    return Path(filePath).readText().trim()
+    return File("2024/files/$name.txt").readText().trim()
 }
 
 /**
  * Reads lines from the given input txt file.
  */
 fun parseInput(name: String): List<String> {
-    val callerClass = Thread.currentThread().stackTrace[2].className
-    val packagePath = callerClass.replace('.', '/')
-        .substringBeforeLast('/')
-    val filePath = "src/$packagePath/$name.txt"
-    return Path(filePath).readText().trim().lines()
+    val dayxx = Thread.currentThread().stackTrace[2].className.split(".").first()
+    val file = File("2024/files/$dayxx/$name.txt")
+    return file.readText().trim().lines()
 }
 
 /**
