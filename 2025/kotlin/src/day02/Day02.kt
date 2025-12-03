@@ -7,22 +7,27 @@ fun main() {
     val part1Expected = 1227775554L
     val part2Expected = 4174379265L
 
-    fun part1(input: List<String>): Long {
+    fun ranges(input: List<String>): List<LongRange> {
         val line = input.first();
         val idRanges = line.split(",").map { range ->
-            val from = range.split("-").first().toLong()
-            val to = range.split("-").last().toLong()
+            val (from, to) = range.split("-").map { it.toLong() }
             from.rangeTo(to)
         }
+        return idRanges
+    }
+
+    fun part1(input: List<String>): Long {
+        val idRanges = ranges(input)
 
         return idRanges.sumOf { range ->
             var sum = 0L;
             range.forEach { id ->
                 val idLength = id.toString().length
                 if (idLength % 2 == 0) {
-                    val first = id.toString().take(idLength / 2)
-                    val last = id.toString().takeLast(idLength / 2)
-                    if (first == last) sum += id
+                    val (first, last) = id.toString().let { Pair(it.take(idLength / 2), it.drop(idLength / 2)) }
+                    if (first == last) {
+                        sum += id
+                    }
                 }
             }
             sum;
@@ -30,12 +35,7 @@ fun main() {
     }
 
     fun part2(input: List<String>): Long {
-        val line = input.first();
-        val idRanges = line.split(",").map { range ->
-            val from = range.split("-").first().toLong()
-            val to = range.split("-").last().toLong()
-            from.rangeTo(to)
-        }
+        val idRanges = ranges(input)
 
         return idRanges.sumOf { range ->
             var sum = 0L;
