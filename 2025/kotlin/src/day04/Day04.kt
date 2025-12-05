@@ -6,13 +6,6 @@ import utils.Pos
 import utils.parseInput
 import utils.println
 
-
-fun List<Int>.maxBetween(afterIndex: Int, untilIndex: Int): Pair<Int, Int> {
-    val slice = this.slice(afterIndex until untilIndex)
-    val (index, max) = slice.withIndex().maxBy { it.value }
-    return Pair(max, index + afterIndex)
-}
-
 fun main() {
     val part1Expected = 13
     val part2Expected = 43
