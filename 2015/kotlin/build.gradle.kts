@@ -1,6 +1,12 @@
 plugins {
-    kotlin("jvm") version "2.1.0"
+    kotlin("jvm") version "2.2.0"
     java
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(24))
+    }
 }
 
 dependencies {
@@ -16,6 +22,6 @@ sourceSets {
 
 tasks {
     wrapper {
-        gradleVersion = "8.11"
+        gradleVersion = "9"
     }
 }
