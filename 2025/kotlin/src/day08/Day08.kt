@@ -25,7 +25,7 @@ data class Box(val index: Int, val x: Long, val y: Long, val z: Long) {
 
 fun main() {
     val part1Expected = 0
-    val part2Expected = 1
+    val part2Expected = 25272
 
     fun part1(input: List<String>): Int {
         val boxes = input.mapIndexed { index, string -> Box.fromString(index, string) }
@@ -43,7 +43,20 @@ fun main() {
     }
 
     fun part2(input: List<String>): Int {
-        return 1
+        val boxes = input.mapIndexed { index, string -> Box.fromString(index, string) }
+
+        val allPairs = boxes.flatMapIndexed { index, point1 ->
+            boxes.drop(index + 1).map { Pair(point1, it) }
+        }.toMutableList().sortedBy { it.first.distanceTo(it.second) }
+
+        val unionFind = UnionFind(boxes.size)
+        for (link in allPairs) {
+            unionFind.union(link.first.index, link.second.index)
+            if (unionFind.isSingle()) {
+                return link.first.x.toInt() * link.second.x.toInt()
+            }
+        }
+        return 0
     }
 
     fun testSolution(solver: (List<String>) -> Int, input: List<String>, expected: Int) {
@@ -55,13 +68,13 @@ fun main() {
     val testInput = parseInput("example1")
     testInput.println("Read testinput")
     testSolution(::part1, testInput, part1Expected)
-    //testSolution(::part2, testInput, part2Expected)
+    testSolution(::part2, testInput, part2Expected)
 
     // Read the input from the `src/Day01.txt` file.
     val input = parseInput("input")
     input.println("Read input")
     testSolution(::part1, input, 54600) // 3990 too low
-    //testSolution(::part2, input, 2)
+    testSolution(::part2, input, 107256172)
 }
 
 class UnionFind(val n: Int) {
@@ -84,5 +97,10 @@ class UnionFind(val n: Int) {
             count[find(i)]++
         }
         return count
+    }
+
+    fun isSingle(): Boolean {
+        val found = find(0)
+        return (1..<n).all { found == find(it) }
     }
 }
